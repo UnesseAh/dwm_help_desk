@@ -41,10 +41,25 @@ const columns: ColumnDef<Ticket>[] = [
     }
   },
   {
-    accessorKey: "priority",
-    header: "Priority",
-    enableColumnFilter: true,
-  },
+  accessorKey: "priority",
+  header: "Priority",
+  enableColumnFilter: true,
+  cell: ({ row }) => {
+    const priority = row.getValue("priority") as string
+
+    return (
+      <span className={`
+        font-medium
+        ${priority === "CRITICAL" ? "text-red-500" : ""}
+        ${priority === "HIGH" ? "text-orange-500" : ""}
+        ${priority === "MEDIUM" ? "text-blue-500" : ""}
+        ${priority === "LOW" ? "text-green-500" : ""}
+      `}>
+        {priority}
+      </span>
+    )
+  }
+},
   {
     accessorKey: "client",
     header: "Client",
@@ -56,9 +71,23 @@ const columns: ColumnDef<Ticket>[] = [
     enableColumnFilter: false, // Don't filter by actions
     cell: ({ row }) => {
       return (
-        <Button variant="ghost" size="sm" onClick={() => console.log("View", row.original.id)}>
-          View
-        </Button>
+        <div className="flex items-center gap-3">
+  <div className="flex items-center gap-3">
+  <button
+    className="text-sm text-blue-600 hover:underline"
+    onClick={() => console.log("View", row.original.id)}
+  >
+    View
+  </button>
+
+  <button
+    className="text-sm text-green-600 hover:underline"
+    onClick={() => console.log("Edit", row.original.id)}
+  >
+    Edit
+  </button>
+</div>
+</div>
       )
     },
   },

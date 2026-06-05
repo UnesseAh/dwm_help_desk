@@ -1,18 +1,35 @@
 import { ThemeToggle } from "@/components/ui/theme-toggle"
-import { Bell } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Search, Bell } from "lucide-react"
 
 export function Topbar() {
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-background px-6">
-      <div className="flex-1" />
+    <header className="flex h-16 items-center justify-end border-b bg-background px-6">
+
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5 text-muted-foreground" />
-          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-destructive" />
-        </Button>
+
+        {/* Barre de recherche */}
+        <div className="flex h-10 items-center rounded-lg border border-border bg-background px-3">
+
+          <Search className="mr-2 h-4 w-4 text-muted-foreground" />
+
+          <input
+            type="text"
+            placeholder="Search..."
+            className="w-60 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          />
+
+        </div>
+
+        {/* Notifications */}
+        <button className="flex items-center justify-center">
+          <Bell className="h-6 w-6" />
+        </button>
+
+        {/* Dark / Light Mode */}
         <ThemeToggle />
+
       </div>
+
     </header>
   )
 }
