@@ -1,17 +1,27 @@
-import { NavLink } from "react-router-dom"
-import { LayoutDashboard, Ticket, Users, Settings, List } from "lucide-react"
+import { NavLink, useNavigate } from "react-router-dom"
+import { LayoutDashboard, Ticket, Users, Settings, List, LogOut } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { useAuth } from "@/hooks/useAuth";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Tickets", href: "/tickets", icon: Ticket },
   { name: "Departments", href: "/departments", icon: List },
   { name: "Users", href: "/users", icon: Users },
-  { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Settings", href: "/settings", icon: Settings }
 ]
 
 export function Sidebar() {
+
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  }
+
   return (
     <div className="flex h-full w-64 flex-col border-r bg-card text-card-foreground">
       <div className="flex h-16 items-center px-6 border-b">
@@ -39,12 +49,15 @@ export function Sidebar() {
       <div className="p-4 border-t">
         <div className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
-            AD
+            {user?.name[0]}
           </div>
           <div className="text-sm">
-            <p className="font-medium">Admin User</p>
-            <p className="text-xs text-muted-foreground">admin@helpdesk.com</p>
+            <p className="font-medium">{user?.name}
+              <span className="inline-flex items-center rounded-md bg-green-400/10 px-2 py-1 text-xs font-medium text-green-400 inset-ring inset-ring-green-500/20">{user?.role}</span>
+            </p>
+            <p className="text-xs text-muted-foreground">{user?.email}</p>
           </div>
+          <button onClick={() => handleLogout()}><LogOut className="h-5 w-5 text-red-600" /></button>
         </div>
       </div>
     </div>
