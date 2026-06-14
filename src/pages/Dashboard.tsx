@@ -1,4 +1,3 @@
-import { Bell, Search } from "lucide-react"
 
 export function Dashboard() {
   return (
