@@ -5,11 +5,12 @@ import { TicketsList } from "@/pages/Tickets/TicketsList"
 import { Dashboard } from "@/pages/Dashboard"
 import { UsersList } from "./pages/Users/UsersList"
 import { SettingsPage } from "@/pages/Settings/SettingsPage"
-import { DepartmentsList } from "@/pages/Departments/DepartmentsList";
 import Login from "./pages/Users/Login"
 import ProtectedRoute from "./components/auth/ProtectedRoute"
 import Register from "./pages/Users/Register"
 import { AuthProvider } from "./contexts/AuthProvider"
+import ServicesList from "./pages/Services/ServicesList"
+import DepartmentsList from "./pages/Departments/DepartmentsList"
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
               <Route path="users" element={<UsersList />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="departments" element={<DepartmentsList />} />
+              <Route path="services" element={<ServicesList />} />
             </Route>
           </Routes>
         </BrowserRouter>
