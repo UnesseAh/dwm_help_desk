@@ -2,9 +2,11 @@ import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/ui/data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { Department } from './DepartmentTypes';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import DepartmentFormModal from './DepartmentFormModal';
 import DeleteModal from '@/components/dialogs/DeleteModal';
+import useToken from '@/hooks/useToken';
+import { Edit, PlusCircle, Trash } from 'lucide-react';
 
 
 export function DepartmentsList() {
@@ -14,46 +16,68 @@ export function DepartmentsList() {
     const [opneDelete, setOpenDelete] = useState(false);
     const [selectDepartment, setSelectDepartment] = useState<Department | null>(null);
     const [loading, setLoading] = useState(false);
+    const { token } = useToken();
 
-    const fetchAllDepartments = async () => {
-        const mockDepartments: Department[] = [
-            { id: 1, name: "IT" },
-            { id: 2, name: "RH" },
-            { id: 3, name: "Administration" },
-        ]
-        setDepartments(mockDepartments)
-    }
+    const fetchAllDepartments = useCallback(async () => {
+        setLoading(true);
+        const response = await fetch(
+            import.meta.env.VITE_APP_API_BASE_URL + "/departments",
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                }
+            }
+        );
+
+        if (!response.ok) throw new Error("Failed to fetch departments");
+        const data = await response.json();
+        setLoading(false);
+        setDepartments(data.data);
+    }, [token]);
 
     useEffect(() => {
         fetchAllDepartments()
     }, []);
 
-    const handleAdd = () => {
+    const handleAdd = useCallback(() => {
         setSelectDepartment(null);
         setOpenForm(true);
-    }
+    }, []);
 
-    const handleEdit = (department: Department) => {
+    const handleEdit = useCallback((department: Department) => {
         setSelectDepartment(department);
         setOpenForm(true);
-    }
+    }, []);
 
-    const handleDelete = (department: Department) => {
+    const handleDelete = useCallback((department: Department) => {
         setSelectDepartment(department);
         setOpenDelete(true);
-    }
+    }, []);
 
     const confirmDelete = async () => {
         if (!selectDepartment) return
-
         try {
-            setLoading(true)
+            setLoading(true);
 
-            // await api.del(`${BASE_URL}/${selectDepartment.id}`)
+            const response = await fetch(
+                import.meta.env.VITE_APP_API_BASE_URL + "/departments/" + selectDepartment.id,
+                {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
 
-            // setDepartments((prev) =>
-            //     prev.filter((d) => d.id !== selectDepartment.id)
-            // )
+            if (!response.ok) throw new Error("Failed to update department");
+            await response.json();
+
+            setDepartments((prev) =>
+                prev.filter((d) => d.id !== selectDepartment.id)
+            )
 
             setOpenDelete(false)
             setSelectDepartment(null)
@@ -65,38 +89,44 @@ export function DepartmentsList() {
     }
 
 
-    const handleSubmit = (data: Department) => {
+    const handleSubmit = async (data: Department) => {
+       if (!token) return;
         try {
             setLoading(true);
-            if (data.id) {
-                // const updated = await api.put<Department>(
-                //     `${BASE_URL}/${data.id}`,
-                //     data
-                // )
+            const isEditing = !!data.id;
+            const url = `${import.meta.env.VITE_APP_API_BASE_URL}/departments`;
+            const method = isEditing ? "PUT" : "POST";
+            const body = isEditing 
+                ? { department: { id: data.id, info: { name: data.name } } }
+                : { department: { name: data.name } };
 
-                // setDepartments((prev) =>
-                //     prev.map((d) =>
-                //         d.id === updated.id ? updated : d
-                //     )
-                // )
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) throw new Error(`Failed to ${isEditing ? 'update' : 'add'} department`);
+            const savedData = await response.json();
+            if (isEditing) {
+                setDepartments((prev) => prev.map((d) => (d.id === savedData.id ? savedData : d)));
             } else {
-                // const updated = await api.put<Department>(
-                //     `${BASE_URL}/${data.id}`,
-                //     data
-                // )
-
-                // setDepartments((prev) =>
-                //     prev.map((d) =>
-                //         d.id === updated.id ? updated : d
-                //     )
-                // )
+                setDepartments((prev) => [...prev, savedData]);
             }
+            setSelectDepartment(null);
+            setOpenForm(false);
         } catch (error) {
-
+            console.error("Submission error:", error);
+            alert("Une erreur est survenue lors de l'enregistrement.");
+        } finally {
+            setLoading(false);
         }
     }
 
-    const columns: ColumnDef<Department>[] = [
+    const columns: ColumnDef<Department>[] =  useMemo(() => [
         {
             accessorKey: "name",
             header: "Libellé",
@@ -110,28 +140,30 @@ export function DepartmentsList() {
                 return (
                     <>
                         <div className="flex gap-2">
-                            <Button variant="ghost" size="sm" onClick={() => console.log("View", row.original.id)}>
+                            {/* <Button variant="ghost" size="sm" onClick={() => console.log("View", row.original.id)}>
                                 View
-                            </Button>
-                            <Button
+                            </Button> */}
+                            <Button 
+                                title='Modifier département'
                                 onClick={() => handleEdit(row.original)}
                                 className="rounded bg-blue-500 px-3 py-1 text-white"
                             >
-                                Edit
+                                <Edit className="h-4 w-4" />
                             </Button>
 
-                            <Button
+                            <Button 
+                                title='Supprimer départment'
                                 onClick={() => handleDelete(row.original)}
                                 className="rounded bg-red-500 px-3 py-1 text-white"
                             >
-                                Delete
+                                 <Trash className="h-4 w-4" />
                             </Button>
                         </div>
                     </>
                 )
             },
         },
-    ]
+    ], [handleEdit, handleDelete]);
 
     return (
         <div className="space-y-6 flex flex-col h-full">
@@ -142,26 +174,25 @@ export function DepartmentsList() {
                     onClick={handleAdd}
                     className="rounded bg-blue-600 px-4 py-2 text-white"
                 >
-                    Add
+                    <PlusCircle className="h-4 w-4" /> Nouvelle département
                 </Button>
             </div>
 
             <div className="flex-1 bg-card rounded-lg border p-4">
-                <DataTable columns={columns} data={depatments} />
 
-                <DepartmentFormModal
-                    open={openForm}
-                    onClose={() => setOpenForm(false)}
-                    department={selectDepartment}
-                    onSubmit={handleSubmit}
-                />
-
-                <DeleteModal
-                    description='Voulez-vous supprimer cette département ?'
-                    open={opneDelete}
-                    onClose={() => setOpenDelete(false)}
-                    onConfirm={confirmDelete}
-                />
+                {loading ? <p>Chargement ....</p> : <DataTable columns={columns} data={depatments} />}
+                    <DepartmentFormModal
+                        open={openForm}
+                        onClose={() => setOpenForm(false)}
+                        department={selectDepartment}
+                        onSubmit={handleSubmit}
+                    />
+                    <DeleteModal
+                        description='Voulez-vous supprimer cette département ?'
+                        open={opneDelete}
+                        onClose={() => setOpenDelete(false)}
+                        onConfirm={confirmDelete}
+                    />
             </div>
         </div>
     )
