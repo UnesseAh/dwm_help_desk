@@ -18,12 +18,14 @@ export default function DepartmentFormModal({
 }: Props) {
     const [name, setName] = useState("");
     useEffect(() => {
-        if (department) {
+       if(open){
+         if (department) {
             setName(department.name);
         } else {
             setName("")
         }
-    }, [department]);
+       }
+    }, [open, department]);
 
     if (!open) return null;
 
