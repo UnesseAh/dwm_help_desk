@@ -7,7 +7,8 @@ import { useAuth } from "@/hooks/useAuth";
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "Tickets", href: "/tickets", icon: Ticket },
-  { name: "Departments", href: "/departments", icon: List },
+  { name: "Services", href: "/services", icon: List },
+  { name: "Départments", href: "/departments", icon: List },
   { name: "Users", href: "/users", icon: Users },
   { name: "Settings", href: "/settings", icon: Settings }
 ]
