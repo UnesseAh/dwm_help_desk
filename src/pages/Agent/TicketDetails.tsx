@@ -3,8 +3,10 @@ import {
   MessageSquarePlus, Download, Printer, 
   Trash2, 
 } from "lucide-react"
+import { useAuth } from "@/hooks/useAuth";
 
 export function TicketDetails() {
+  const { user } = useAuth();
   return (
     <div className="space-y-6">
 
@@ -250,117 +252,65 @@ export function TicketDetails() {
 
       <div className="grid gap-6 lg:grid-cols-12">
 
-                {/* Conversation */}
+        {user?.role !== 'USER' ? (
+          <>
+            {/* Conversation */}
+            <div className="rounded-lg border border-border bg-card p-6 lg:col-span-8">
 
-<div className="rounded-lg border border-border bg-card p-6 lg:col-span-8">
+              {/* Header */}
+              <h3 className="mb-6 text-lg font-semibold">
+                Conversation
+              </h3>
 
-  {/* Header */}
+              <div className="space-y-6">
 
-  <h3 className="mb-6 text-lg font-semibold">
-    Conversation
-  </h3>
+                {/* Customer Message */}
+                <div className="flex gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-bold text-white">
+                    A
+                  </div>
+                  <div className="flex-1 rounded-2xl bg-muted p-4">
+                    <div className="mb-2 flex items-center justify-between">
+                      <h4 className="font-semibold">Alice Johnson</h4>
+                      <span className="text-xs text-muted-foreground">May 20, 2026 • 10:20 AM</span>
+                    </div>
+                    <p>Hello, I can't connect to the VPN since this morning. It keeps showing "Connection Failed".</p>
+                  </div>
+                </div>
 
-  <div className="space-y-6">
+                {/* Agent Reply */}
+                <div className="flex justify-end gap-4">
+                  <div className="flex-1 rounded-2xl bg-primary p-4 text-primary-foreground">
+                    <div className="mb-2 flex items-center justify-between">
+                      <h4 className="font-semibold">Agent Test 1</h4>
+                      <span className="text-xs text-primary-foreground/80">May 20, 2026 • 10:25 AM</span>
+                    </div>
+                    <p>Hello Alice, thank you for contacting us. I'm checking your VPN account now.</p>
+                  </div>
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-600 text-lg font-bold text-white">
+                    A
+                  </div>
+                </div>
 
-    {/* Customer Message */}
+                {/* Customer Message */}
+                <div className="flex gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-bold text-white">
+                    A
+                  </div>
+                  <div className="flex-1 rounded-2xl bg-muted p-4">
+                    <div className="mb-2 flex items-center justify-between">
+                      <h4 className="font-semibold">Alice Johnson</h4>
+                      <span className="text-xs text-muted-foreground">May 20, 2026 • 10:30 AM</span>
+                    </div>
+                    <p>Thank you. I'll wait for your update.</p>
+                  </div>
+                </div>
 
-    <div className="flex gap-4">
+              </div>
+            </div>
 
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-bold text-white">
-        A
-      </div>
-
-      <div className="flex-1 rounded-2xl bg-muted p-4">
-
-        <div className="mb-2 flex items-center justify-between">
-
-          <h4 className="font-semibold">
-            Alice Johnson
-          </h4>
-
-          <span className="text-xs text-muted-foreground">
-            May 20, 2026 • 10:20 AM
-          </span>
-
-        </div>
-
-        <p>
-          Hello, I can't connect to the VPN since this morning.
-          It keeps showing "Connection Failed".
-        </p>
-
-      </div>
-
-    </div>
-
-    {/* Agent Reply */}
-
-    <div className="flex justify-end gap-4">
-
-      <div className="flex-1 rounded-2xl bg-primary p-4 text-primary-foreground">
-
-        <div className="mb-2 flex items-center justify-between">
-
-          <h4 className="font-semibold">
-            Agent Test 1
-          </h4>
-
-          <span className="text-xs text-primary-foreground/80">
-            May 20, 2026 • 10:25 AM
-          </span>
-
-        </div>
-
-        <p>
-          Hello Alice, thank you for contacting us.
-          I'm checking your VPN account now.
-        </p>
-
-      </div>
-
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-600 text-lg font-bold text-white">
-        A
-      </div>
-
-    </div>
-
-    {/* Customer Message */}
-
-    <div className="flex gap-4">
-
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-bold text-white">
-        A
-      </div>
-
-      <div className="flex-1 rounded-2xl bg-muted p-4">
-
-        <div className="mb-2 flex items-center justify-between">
-
-          <h4 className="font-semibold">
-            Alice Johnson
-          </h4>
-
-          <span className="text-xs text-muted-foreground">
-            May 20, 2026 • 10:30 AM
-          </span>
-
-        </div>
-
-        <p>
-          Thank you. I'll wait for your update.
-        </p>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</div>
-
-        {/* Right Side */}
-
-        <div className="space-y-6 lg:col-span-4">
+            {/* Right Side */}
+            <div className="space-y-6 lg:col-span-4">
 
                 {/* Ticket Actions */}
 
@@ -615,7 +565,9 @@ export function TicketDetails() {
 
 </div>
 
-        </div>
+            </div>
+          </>
+        ) : null}
 
       </div>
 
