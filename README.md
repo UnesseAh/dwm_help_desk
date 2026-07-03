@@ -1,73 +1,112 @@
-# React + TypeScript + Vite
+# IT Helpdesk Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React, TypeScript, and Vite frontend for the IT Helpdesk application.
 
-Currently, two official plugins are available:
+## Prerequisites
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Install these before starting:
 
-## React Compiler
+- Node.js LTS
+- npm
+- The backend API running locally
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Check that Node and npm are installed:
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+node -v
+npm -v
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Setup From Scratch
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### 1. Install Dependencies
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+From the frontend folder:
+
+```bash
+cd dwm_help_desk
+npm install
 ```
+
+### 2. Configure Environment Variables
+
+Create a `.env` file in the `dwm_help_desk` folder:
+
+```env
+VITE_APP_API_BASE_URL=http://localhost:5000/api
+```
+
+Use a different URL only if your backend is running on another port or host.
+
+### 3. Start the Backend
+
+The frontend needs the backend API before login, tickets, services, departments, and comments can work.
+
+In a separate terminal, start the backend from the `dwm_help_desk_bff` folder:
+
+```bash
+npm run dev
+```
+
+### 4. Start the Frontend
+
+From the `dwm_help_desk` folder:
+
+```bash
+npm run dev
+```
+
+Vite will print the local URL, usually:
+
+```text
+http://localhost:5173/
+```
+
+If port `5173` is already in use, Vite will choose another one, for example `http://localhost:5174/`.
+
+## Available Scripts
+
+```bash
+npm run dev
+```
+
+Starts the development server.
+
+```bash
+npm run build
+```
+
+Builds the frontend for production.
+
+```bash
+npm run preview
+```
+
+Previews the production build locally.
+
+```bash
+npm run lint
+```
+
+Runs ESLint.
+
+## Common Issues
+
+### `'vite' is not recognized`
+
+Run:
+
+```bash
+npm install
+npm run dev
+```
+
+This happens when dependencies are not installed yet.
+
+### Backend Requests Fail
+
+Make sure:
+
+- The backend is running.
+- The frontend `.env` file has `VITE_APP_API_BASE_URL=http://localhost:5000/api`.
+- You restarted the frontend after changing `.env`.
