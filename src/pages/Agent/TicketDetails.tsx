@@ -1,576 +1,339 @@
-import {
-  FileEdit, CheckCircle, Paperclip,
-  MessageSquarePlus, Download, Printer, 
-  Trash2, 
-} from "lucide-react"
-import { useAuth } from "@/hooks/useAuth";
+import { MessageSquarePlus, Send } from "lucide-react"
+import { jwtDecode } from "jwt-decode"
+import { useEffect, useMemo, useState } from "react"
+import { useNavigate, useSearchParams } from "react-router-dom"
+import { Button } from "@/components/ui/button"
+import useToken from "@/hooks/useToken"
+
+type TicketStatus = "OPEN" | "IN_PROGRESS" | "PENDING" | "RESOLVED" | "CLOSED"
+type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
+
+type TicketMessage = {
+  id: string
+  content: string
+  createdAt: string
+  sender: {
+    id: string
+    name: string
+    role: "USER" | "AGENT" | "ADMIN"
+  }
+}
+
+type Ticket = {
+  id: string
+  title: string
+  description: string
+  status: TicketStatus
+  priority: TicketPriority
+  createdAt: string
+  client: {
+    id: string
+    name: string
+    email: string
+  }
+  agent?: {
+    id: string
+    name: string
+    email: string
+  } | null
+  service: {
+    id: string
+    name: string
+    department: {
+      id: string
+      name: string
+    }
+  }
+  messages: TicketMessage[]
+}
+
+type TokenPayload = {
+  user?: {
+    id: string
+    username: string
+    email: string
+    role: "USER" | "AGENT" | "ADMIN"
+  }
+}
+
+const statuses: TicketStatus[] = ["OPEN", "IN_PROGRESS", "PENDING", "RESOLVED", "CLOSED"]
+
+const statusLabels: Record<TicketStatus, string> = {
+  OPEN: "Open",
+  IN_PROGRESS: "In progress",
+  PENDING: "Pending",
+  RESOLVED: "Resolved",
+  CLOSED: "Closed",
+}
+
+const priorityLabels: Record<TicketPriority, string> = {
+  LOW: "Low",
+  MEDIUM: "Medium",
+  HIGH: "High",
+  CRITICAL: "Critical",
+}
+
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value))
+}
+
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="grid gap-1 border-b border-border pb-4 last:border-b-0 last:pb-0 sm:grid-cols-3 sm:gap-4">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="break-words font-medium sm:col-span-2">{value}</span>
+    </div>
+  )
+}
 
 export function TicketDetails() {
-  const { user } = useAuth();
+  const [searchParams] = useSearchParams()
+  const ticketId = searchParams.get("id")
+  const navigate = useNavigate()
+  const { token } = useToken()
+
+  const [ticket, setTicket] = useState<Ticket | null>(null)
+  const [comment, setComment] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [savingStatus, setSavingStatus] = useState(false)
+  const [sendingComment, setSendingComment] = useState(false)
+  const [error, setError] = useState("")
+
+  const currentUser = useMemo(() => {
+    if (!token) return null
+
+    try {
+      return jwtDecode<TokenPayload>(token).user ?? null
+    } catch {
+      return null
+    }
+  }, [token])
+
+  const canChangeStatus = currentUser?.role === "AGENT" || currentUser?.role === "ADMIN"
+  const apiBaseUrl = import.meta.env.VITE_APP_API_BASE_URL
+
+  useEffect(() => {
+    const fetchTicket = async () => {
+      if (!token || !ticketId) {
+        setLoading(false)
+        return
+      }
+
+      try {
+        setLoading(true)
+        const response = await fetch(`${apiBaseUrl}/tickets/${ticketId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+
+        if (!response.ok) {
+          throw new Error("Unable to load ticket")
+        }
+
+        setTicket(await response.json())
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Unable to load ticket")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchTicket()
+  }, [apiBaseUrl, ticketId, token])
+
+  const updateStatus = async (status: TicketStatus) => {
+    if (!token || !ticket) return
+
+    try {
+      setSavingStatus(true)
+      const response = await fetch(`${apiBaseUrl}/tickets/${ticket.id}/status`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Unable to update status")
+      }
+
+      setTicket(await response.json())
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to update status")
+    } finally {
+      setSavingStatus(false)
+    }
+  }
+
+  const sendComment = async () => {
+    if (!token || !ticket || !comment.trim()) return
+
+    try {
+      setSendingComment(true)
+      const response = await fetch(`${apiBaseUrl}/tickets/${ticket.id}/messages`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ content: comment }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Unable to send comment")
+      }
+
+      const message = await response.json()
+      setTicket({ ...ticket, messages: [...ticket.messages, message] })
+      setComment("")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to send comment")
+    } finally {
+      setSendingComment(false)
+    }
+  }
+
+  if (!ticketId) {
+    return (
+      <div className="rounded-lg border border-border bg-card p-6">
+        <h2 className="text-2xl font-bold">Ticket not found</h2>
+        <p className="mt-2 text-muted-foreground">Open a ticket from the tickets list.</p>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return <div className="rounded-lg border border-border bg-card p-6">Loading ticket...</div>
+  }
+
+  if (!ticket) {
+    return (
+      <div className="rounded-lg border border-border bg-card p-6">
+        <h2 className="text-2xl font-bold">Ticket unavailable</h2>
+        <p className="mt-2 text-muted-foreground">{error || "This ticket could not be loaded."}</p>
+        <Button className="mt-4" onClick={() => navigate("/tickets")}>
+          Back to tickets
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
-
-      {/* Header */}
-
       <div>
-
-        <h2 className="text-2xl font-bold">
-          Ticket Details
-        </h2>
-
-        <p className="mt-1 text-muted-foreground">
-          View and manage ticket information.
-        </p>
-
+        <h2 className="text-2xl font-bold">Ticket Details</h2>
+        <p className="mt-1 text-muted-foreground">View the ticket request and continue the conversation.</p>
       </div>
 
-      {/* Top Section */}
+      {error ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">
+          {error}
+        </div>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-12">
-
-        
-{/* Ticket Information */}
-
-<div className="rounded-lg border border-border bg-card p-6 lg:col-span-6">
-
-  {/* Header */}
-
-  <h3 className="mb-6 text-lg font-semibold">
-    Ticket Information
-  </h3>
-
-  <div className="grid gap-y-5">
-
-    {/* Ticket ID */}
-
-    <div className="flex justify-between border-b pb-3">
-
-      <span className="text-muted-foreground">
-        Ticket ID
-      </span>
-
-      <span className="font-medium">
-        TCK-1001
-      </span>
-
-    </div>
-
-    {/* Subject */}
-
-    <div className="flex justify-between border-b pb-3">
-
-      <span className="text-muted-foreground">
-        Subject
-      </span>
-
-      <span className="font-medium">
-        Cannot access VPN
-      </span>
-
-    </div>
-
-    {/* Category */}
-
-    <div className="flex justify-between border-b pb-3">
-
-      <span className="text-muted-foreground">
-        Category
-      </span>
-
-      <span className="font-medium">
-        Network
-      </span>
-
-    </div>
-
-    {/* Priority */}
-
-    <div className="flex justify-between border-b pb-3">
-
-      <span className="text-muted-foreground">
-        Priority
-      </span>
-
-      <span className="font-medium text-red-600">
-        High
-      </span>
-
-    </div>
-
-    {/* Status */}
-
-    <div className="flex justify-between border-b pb-3">
-
-      <span className="text-muted-foreground">
-        Status
-      </span>
-
-      <span className="font-medium text-blue-600">
-        Open
-      </span>
-
-    </div>
-
-    {/* Assigned */}
-
-    <div className="flex justify-between border-b pb-3">
-
-      <span className="text-muted-foreground">
-        Assigned To
-      </span>
-
-      <span className="font-medium">
-        Agent Test 1
-      </span>
-
-    </div>
-
-    {/* Created */}
-
-    <div className="flex justify-between">
-
-      <span className="text-muted-foreground">
-        Created
-      </span>
-
-      <span className="font-medium">
-        May 20, 2026
-      </span>
-
-    </div>
-
-  </div>
-
-</div>
-
-
-
-
-       {/* Customer Information */}
-
-<div className="rounded-lg border border-border bg-card p-6 lg:col-span-6">
-
-  {/* Header */}
-
-  <h3 className="mb-6 text-lg font-semibold">
-    Customer Information
-  </h3>
-
-  <div className="grid gap-y-5">
-
-    {/* Full Name */}
-
-    <div className="flex justify-between border-b pb-3">
-
-      <span className="text-muted-foreground">
-        Full Name
-      </span>
-
-      <span className="font-medium">
-        Alice Johnson
-      </span>
-
-    </div>
-
-    {/* Username */}
-
-    <div className="flex justify-between border-b pb-3">
-
-      <span className="text-muted-foreground">
-        Username
-      </span>
-
-      <span className="font-medium">
-        alicej
-      </span>
-
-    </div>
-
-    {/* Email */}
-
-    <div className="flex justify-between border-b pb-3">
-
-      <span className="text-muted-foreground">
-        Email
-      </span>
-
-      <span className="font-medium">
-        alice@test.com
-      </span>
-
-    </div>
-
-    {/* Phone */}
-
-    <div className="flex justify-between border-b pb-3">
-
-      <span className="text-muted-foreground">
-        Phone
-      </span>
-
-      <span className="font-medium">
-        +212 6 12 34 56 78
-      </span>
-
-    </div>
-
-    {/* Department */}
-
-    <div className="flex justify-between border-b pb-3">
-
-      <span className="text-muted-foreground">
-        Department
-      </span>
-
-      <span className="font-medium">
-        Human Resources
-      </span>
-
-    </div>
-
-    {/* Location */}
-
-    <div className="flex justify-between">
-
-      <span className="text-muted-foreground">
-        Location
-      </span>
-
-      <span className="font-medium">
-        Casablanca, Morocco
-      </span>
-
-    </div>
-
-  </div>
-
-</div>
-
-      </div>
-
-      {/* Bottom Section */}
-
-      <div className="grid gap-6 lg:grid-cols-12">
-
-        {user?.role !== 'USER' ? (
-          <>
-            {/* Conversation */}
-            <div className="rounded-lg border border-border bg-card p-6 lg:col-span-8">
-
-              {/* Header */}
-              <h3 className="mb-6 text-lg font-semibold">
-                Conversation
-              </h3>
-
-              <div className="space-y-6">
-
-                {/* Customer Message */}
-                <div className="flex gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-bold text-white">
-                    A
-                  </div>
-                  <div className="flex-1 rounded-2xl bg-muted p-4">
-                    <div className="mb-2 flex items-center justify-between">
-                      <h4 className="font-semibold">Alice Johnson</h4>
-                      <span className="text-xs text-muted-foreground">May 20, 2026 • 10:20 AM</span>
-                    </div>
-                    <p>Hello, I can't connect to the VPN since this morning. It keeps showing "Connection Failed".</p>
-                  </div>
-                </div>
-
-                {/* Agent Reply */}
-                <div className="flex justify-end gap-4">
-                  <div className="flex-1 rounded-2xl bg-primary p-4 text-primary-foreground">
-                    <div className="mb-2 flex items-center justify-between">
-                      <h4 className="font-semibold">Agent Test 1</h4>
-                      <span className="text-xs text-primary-foreground/80">May 20, 2026 • 10:25 AM</span>
-                    </div>
-                    <p>Hello Alice, thank you for contacting us. I'm checking your VPN account now.</p>
-                  </div>
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-600 text-lg font-bold text-white">
-                    A
-                  </div>
-                </div>
-
-                {/* Customer Message */}
-                <div className="flex gap-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-lg font-bold text-white">
-                    A
-                  </div>
-                  <div className="flex-1 rounded-2xl bg-muted p-4">
-                    <div className="mb-2 flex items-center justify-between">
-                      <h4 className="font-semibold">Alice Johnson</h4>
-                      <span className="text-xs text-muted-foreground">May 20, 2026 • 10:30 AM</span>
-                    </div>
-                    <p>Thank you. I'll wait for your update.</p>
-                  </div>
-                </div>
-
-              </div>
+        <div className="rounded-lg border border-border bg-card p-6 lg:col-span-8">
+          <h3 className="mb-6 text-lg font-semibold">Ticket Information</h3>
+          <div className="space-y-4">
+            <DetailRow label="Ticket ID" value={ticket.id} />
+            <DetailRow label="Title" value={ticket.title} />
+            <DetailRow label="Description" value={ticket.description} />
+            <DetailRow label="Department" value={ticket.service.department.name} />
+            <DetailRow label="Service" value={ticket.service.name} />
+            <DetailRow label="Priority" value={priorityLabels[ticket.priority]} />
+            <DetailRow label="Status" value={statusLabels[ticket.status]} />
+            <DetailRow label="Created" value={formatDate(ticket.createdAt)} />
+          </div>
+        </div>
+
+        <div className="space-y-6 lg:col-span-4">
+          <div className="rounded-lg border border-border bg-card p-6">
+            <h3 className="mb-6 text-lg font-semibold">Created By</h3>
+            <div className="space-y-4">
+              <DetailRow label="Name" value={ticket.client.name} />
+              <DetailRow label="Email" value={ticket.client.email} />
             </div>
-
-            {/* Right Side */}
-            <div className="space-y-6 lg:col-span-4">
-
-                {/* Ticket Actions */}
-
-<div className="rounded-lg border border-border bg-card p-6">
-
-  {/* Header */}
-
-  <h3 className="mb-6 text-lg font-semibold">
-    Ticket Actions
-  </h3>
-
-  <div className="space-y-4">
-
-    {/* Change Status */}
-
-    <button className="flex w-full items-center justify-between rounded-xl border border-border p-4 transition-colors hover:bg-muted">
-
-      <div className="flex items-center gap-3">
-
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-
-          <FileEdit className="h-5 w-5 text-primary" />
-
-        </div>
-
-        <span className="font-medium">
-          Change Status
-        </span>
-
-      </div>
-
-      <select className="rounded-md border border-border bg-background px-2 py-1 text-sm outline-none">
-
-        <option>Open</option>
-        <option>In Progress</option>
-        <option>Pending</option>
-        <option>Resolved</option>
-
-      </select>
-
-    </button>
-
-    {/* Add Note */}
-
-    <button className="flex w-full items-center gap-3 rounded-xl border border-border p-4 transition-colors hover:bg-muted">
-
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-500/10">
-
-        <MessageSquarePlus className="h-5 w-5 text-orange-500" />
-
-      </div>
-
-      <span className="font-medium">
-        Add Internal Note
-      </span>
-
-    </button>
-
-    {/* Resolve Ticket */}
-
-    <button className="flex w-full items-center gap-3 rounded-xl bg-green-600 p-4 font-medium text-white transition hover:bg-green-700">
-
-      <CheckCircle className="h-5 w-5" />
-
-      Resolve Ticket
-
-    </button>
-
-  </div>
-
-</div>
-
-          {/* Attachments */}
-
-<div className="rounded-lg border border-border bg-card p-6">
-
-  {/* Header */}
-
-  <h3 className="mb-6 text-lg font-semibold">
-    Attachments
-  </h3>
-
-  <div className="space-y-4">
-
-    {/* File 1 */}
-
-    <div className="flex items-center justify-between rounded-xl border border-border p-4">
-
-      <div className="flex items-center gap-3">
-
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-
-          <Paperclip className="h-5 w-5 text-primary" />
-
-        </div>
-
-        <div>
-
-          <p className="font-medium">
-            vpn_error.png
-          </p>
-
-          <p className="text-xs text-muted-foreground">
-            1.8 MB
-          </p>
-
-        </div>
-
-      </div>
-
-      <button className="rounded-lg border border-border p-2 transition hover:bg-muted">
-
-        <Download className="h-5 w-5" />
-
-      </button>
-
-    </div>
-
-    {/* File 2 */}
-
-    <div className="flex items-center justify-between rounded-xl border border-border p-4">
-
-      <div className="flex items-center gap-3">
-
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-
-          <Paperclip className="h-5 w-5 text-primary" />
-
-        </div>
-
-        <div>
-
-          <p className="font-medium">
-            error_log.pdf
-          </p>
-
-          <p className="text-xs text-muted-foreground">
-            560 KB
-          </p>
-
-        </div>
-
-      </div>
-
-      <button className="rounded-lg border border-border p-2 transition hover:bg-muted">
-
-        <Download className="h-5 w-5" />
-
-      </button>
-
-    </div>
-
-    {/* File 3 */}
-
-    <div className="flex items-center justify-between rounded-xl border border-border p-4">
-
-      <div className="flex items-center gap-3">
-
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-
-          <Paperclip className="h-5 w-5 text-primary" />
-
-        </div>
-
-        <div>
-
-          <p className="font-medium">
-            screenshot.jpg
-          </p>
-
-          <p className="text-xs text-muted-foreground">
-            2.3 MB
-          </p>
-
-        </div>
-
-      </div>
-
-      <button className="rounded-lg border border-border p-2 transition hover:bg-muted">
-
-        <Download className="h-5 w-5" />
-
-      </button>
-
-    </div>
-
-  </div>
-
-</div>
-
-                {/* Other Actions */}
-
-<div className="rounded-lg border border-border bg-card p-6">
-
-  {/* Header */}
-
-  <h3 className="mb-6 text-lg font-semibold">
-    Other Actions
-  </h3>
-
-  <div className="space-y-4">
-
-    {/* Download Ticket */}
-
-    <button className="flex w-full items-center gap-3 rounded-xl border border-border p-4 transition-colors hover:bg-muted">
-
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-500/10">
-
-        <Download className="h-5 w-5 text-blue-600" />
-
-      </div>
-
-      <span className="font-medium">
-        Download Ticket
-      </span>
-
-    </button>
-
-    {/* Print Ticket */}
-
-    <button className="flex w-full items-center gap-3 rounded-xl border border-border p-4 transition-colors hover:bg-muted">
-
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-500/10">
-
-        <Printer className="h-5 w-5 text-orange-500" />
-
-      </div>
-
-      <span className="font-medium">
-        Print Ticket
-      </span>
-
-    </button>
-
-    {/* Delete Ticket */}
-
-    <button className="flex w-full items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-red-600 transition-colors hover:bg-red-100 dark:border-red-900 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50">
-
-      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 dark:bg-red-500/10">
-
-        <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400" />
-
-      </div>
-
-      <span className="font-medium">
-        Delete Ticket
-      </span>
-
-    </button>
-
-  </div>
-
-</div>
-
+          </div>
+
+          {canChangeStatus ? (
+            <div className="rounded-lg border border-border bg-card p-6">
+              <h3 className="mb-4 text-lg font-semibold">Agent Actions</h3>
+              <label className="text-sm font-medium text-muted-foreground">Ticket status</label>
+              <select
+                value={ticket.status}
+                disabled={savingStatus}
+                onChange={(event) => updateStatus(event.target.value as TicketStatus)}
+                className="mt-2 h-12 w-full rounded-lg border border-border bg-background px-4 outline-none transition-colors focus:border-primary disabled:opacity-60"
+              >
+                {statuses.map((status) => (
+                  <option key={status} value={status}>
+                    {statusLabels[status]}
+                  </option>
+                ))}
+              </select>
             </div>
-          </>
-        ) : null}
-
+          ) : null}
+        </div>
       </div>
 
+      <div className="rounded-lg border border-border bg-card p-6">
+        <div className="mb-6 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+            <MessageSquarePlus className="h-5 w-5 text-primary" />
+          </div>
+          <h3 className="text-lg font-semibold">Comments</h3>
+        </div>
+
+        <div className="space-y-4">
+          {ticket.messages.length ? (
+            ticket.messages.map((message) => {
+              const isCurrentUser = currentUser?.id?.toString() === message.sender.id.toString()
+
+              return (
+                <div
+                  key={message.id}
+                  className={`rounded-lg border border-border p-4 ${
+                    isCurrentUser ? "bg-primary/10" : "bg-muted/60"
+                  }`}
+                >
+                  <div className="mb-2 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="font-medium">
+                      {message.sender.name} · {message.sender.role}
+                    </span>
+                    <span className="text-xs text-muted-foreground">{formatDate(message.createdAt)}</span>
+                  </div>
+                  <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                </div>
+              )
+            })
+          ) : (
+            <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+              No comments yet.
+            </p>
+          )}
+        </div>
+
+        <div className="mt-6 space-y-3">
+          <label className="text-sm font-medium">Add a comment</label>
+          <textarea
+            rows={4}
+            value={comment}
+            onChange={(event) => setComment(event.target.value)}
+            placeholder="Write a message about this ticket..."
+            className="w-full resize-none rounded-lg border border-border bg-background p-4 outline-none transition-colors focus:border-primary"
+          />
+          <div className="flex justify-end">
+            <Button onClick={sendComment} disabled={!comment.trim() || sendingComment}>
+              Send comment
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
