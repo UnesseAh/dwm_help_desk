@@ -1,6 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/ui/data-table"
-import { Button } from "@/components/ui/button"
 
 // 1. Define the shape of your data
 type Ticket = {

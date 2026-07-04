@@ -1,5 +1,5 @@
 import useToken from "@/hooks/useToken";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AuthContext } from "./AuthContext";
 
 type UserData = {
@@ -7,12 +7,41 @@ type UserData = {
     email: string;
     department: number;
     role: string;
-
 } | null;
 
 export function AuthProvider({ children }: any) {
     const { token, setToken, removeToken } = useToken();
     const [user, setUser] = useState<UserData>(null);
+
+    const hasRole = (roles: string[]) => {
+        return roles.includes(user?.role as string);
+    };
+
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const fetchMe = async () => {
+            const response = await fetch(
+                import.meta.env.VITE_APP_API_BASE_URL + "/users/me",
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                }
+            );
+            if (!response.ok) {
+                throw new Error("Token failed");
+            }
+
+            const data = await response.json();
+            setUser(data.user);
+            return data;
+        }
+        fetchMe();
+    }, []);
 
     const login = async (credentials: any) => {
         const response = await fetch(
@@ -33,6 +62,7 @@ export function AuthProvider({ children }: any) {
 
         const data = await response.json();
         setToken(data.token);
+        localStorage.setItem("token", data.token);
         setUser(data.user);
         return data;
     };
@@ -61,6 +91,7 @@ export function AuthProvider({ children }: any) {
     const logout = () => {
         removeToken();
         setUser(null);
+        localStorage.removeItem('token');
     };
 
     return (
@@ -72,6 +103,7 @@ export function AuthProvider({ children }: any) {
                 register,
                 logout,
                 isAuthenticated: !!token,
+                hasRole
             }}
         >
             {children}

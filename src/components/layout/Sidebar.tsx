@@ -5,18 +5,18 @@ import { cn } from "@/lib/utils"
 import { useAuth } from "@/hooks/useAuth";
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Tickets", href: "/tickets", icon: Ticket },
-  { name: "Services", href: "/services", icon: List },
-  { name: "Départments", href: "/departments", icon: List },
-  { name: "Users", href: "/users", icon: Users },
-  { name: "Settings", href: "/settings", icon: Settings }
+  { name: "Dashboard", href: "/", icon: LayoutDashboard,  roles: ["ADMIN", "AGENT", "USER"]},
+  { name: "Tickets", href: "/tickets", icon: Ticket, roles: ["ADMIN", "AGENT", "USER"] },
+  { name: "Services", href: "/services", icon: List,  roles: ["ADMIN"] },
+  { name: "Départments", href: "/departments", icon: List, roles: ["ADMIN"] },
+  { name: "Users", href: "/users", icon: Users, roles: ["ADMIN"] },
+  { name: "Settings", href: "/settings", icon: Settings, roles: ["ADMIN", "AGENT", "USER"] }
 ]
 
 export function Sidebar() {
 
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, hasRole } = useAuth();
 
   const handleLogout = () => {
     logout();
@@ -30,7 +30,7 @@ export function Sidebar() {
       </div>
       <nav className="flex-1 space-y-1 px-4 py-6">
         {navigation.map((item) => (
-          <NavLink
+            item.roles && hasRole(item.roles) ? <NavLink
             key={item.name}
             to={item.href}
             className={({ isActive }) =>
@@ -44,7 +44,7 @@ export function Sidebar() {
           >
             <item.icon className="h-5 w-5" />
             {item.name}
-          </NavLink>
+          </NavLink> : null
         ))}
       </nav>
       <div className="p-4 border-t">
