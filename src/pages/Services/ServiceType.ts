@@ -1,7 +1,7 @@
 export type Service = {
     id?: number;
-    name: string;
-    department: {
+    name?: string;
+    department?: {
         id: number;
         name: string;
     };

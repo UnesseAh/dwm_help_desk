@@ -12,7 +12,7 @@ import { Edit, PlusCircle, Trash } from 'lucide-react';
 export default function DepartmentsList() {
     const [depatments, setDepartments] = useState<Department[]>([]);
     const [openForm, setOpenForm] = useState(false);
-    const [opneDelete, setOpenDelete] = useState(false);
+    const [openDelete, setOpenDelete] = useState(false);
     const [selectDepartment, setSelectDepartment] = useState<Department | null>(null);
     const [loading, setLoading] = useState(false);
     const { token } = useToken();
@@ -71,7 +71,7 @@ export default function DepartmentsList() {
                 }
             );
 
-            if (!response.ok) throw new Error("Failed to update department");
+            if (!response.ok) throw new Error("Failed to delete department");
             await response.json();
 
             setDepartments((prev) =>
@@ -190,7 +190,7 @@ export default function DepartmentsList() {
                     />
                     <DeleteModal
                         description='Voulez-vous supprimer cette département ?'
-                        open={opneDelete}
+                        open={openDelete}
                         onClose={() => setOpenDelete(false)}
                         onConfirm={confirmDelete}
                     />

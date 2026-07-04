@@ -3,7 +3,6 @@ import { ThemeProvider } from "@/components/ui/theme-provider"
 import { AppLayout } from "@/components/layout/AppLayout"
 import { TicketsList } from "@/pages/Tickets/TicketsList"
 import { Dashboard } from "@/pages/Dashboard"
-import { UsersList } from "./pages/Users/UsersList"
 import { SettingsPage } from "@/pages/Settings/SettingsPage"
 import Login from "./pages/Users/Login"
 import ProtectedRoute from "./components/auth/ProtectedRoute"
@@ -19,6 +18,7 @@ import { AgentDashboard } from "@/pages/Agent/AgentDashboard"
 import { AssignedTickets } from "@/pages/Agent/AssignedTickets"
 import { ChatSystem } from "@/pages/Agent/ChatSystem"
 import { TicketDetails } from "@/pages/Agent/TicketDetails"
+import { UsersList } from "./pages/Users/UsersList"
 
 
 function App() {

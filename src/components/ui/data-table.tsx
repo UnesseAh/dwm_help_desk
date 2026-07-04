@@ -25,6 +25,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react"
 
+export type FilterOption = {
+  label: string
+  value: string
+}
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
@@ -60,19 +65,23 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-                  const filterVariant = header.column.columnDef.meta?.filterVariant;
+                  const filterVariant = header.column.columnDef.meta?.filterVariant as string | undefined;
+                  const providedOptions = header.column.columnDef.meta?.filterOptions as FilterOption[] | undefined;
                   
-                  // Extract unique items dynamically from data for the multi-select options
-                  const uniqueOptions = React.useMemo(() => {
+                  // Extract unique items dynamically if no custom filterOptions are provided
+                  const filterOptions = React.useMemo(() => {
                     if (filterVariant !== "multi-select") return [];
+                    if (providedOptions) return providedOptions; // Use custom options (e.g., ROLE_OPTIONS)
+
+                    // Fallback: Generate options dynamically from data
                     const values = data.map((row: any) => {
-                      // Dynamically resolves deep nested paths like "department.name"
                       return header.column.columnDef.accessorKey
-                        ? header.column.columnDef.accessorKey.split('.').reduce((obj, key) => obj?.[key], row)
+                        ? (header.column.columnDef.accessorKey as string).split('.').reduce((obj, key) => obj?.[key], row)
                         : null;
                     });
-                    return Array.from(new Set(values)).filter(Boolean) as string[];
-                  }, [data, filterVariant, header.column.columnDef.accessorKey]);
+                    const uniqueValues = Array.from(new Set(values)).filter(Boolean) as string[];
+                    return uniqueValues.map((val) => ({ label: val, value: val }));
+                  }, [data, filterVariant, providedOptions, header.column.columnDef.accessorKey]);
 
                   return (
                     <TableHead key={header.id} className="align-top py-4">
@@ -89,7 +98,7 @@ export function DataTable<TData, TValue>({
                             // CONDITION 1: Handle Multi-Select Filter Variant
                             filterVariant === "multi-select" ? (
                               <DataTableMultiSelectFilter
-                                options={uniqueOptions}
+                                options={filterOptions}
                                 value={(header.column.getFilterValue() as string[]) ?? []}
                                 onChange={(newValue) => 
                                   header.column.setFilterValue(newValue.length ? newValue : undefined)
@@ -139,7 +148,7 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
       
-      {/* Pagination UI markup follows below identically... */}
+      {/* Pagination UI */}
       <div className="flex items-center justify-between px-2 py-4">
         <div className="flex-1 text-sm text-muted-foreground">
           Showing <span className="font-semibold text-foreground">{table.getFilteredRowModel().rows.length === 0 ? 0 : table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}</span> to <span className="font-semibold text-foreground">{Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)}</span> of <span className="font-semibold text-foreground">{table.getFilteredRowModel().rows.length}</span> results
@@ -176,7 +185,7 @@ function DataTableMultiSelectFilter({
   value,
   onChange,
 }: {
-  options: string[]
+  options: FilterOption[]
   value: string[]
   onChange: (value: string[]) => void
 }) {
@@ -194,12 +203,12 @@ function DataTableMultiSelectFilter({
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  const toggleOption = (option: string) => {
-    const isSelected = value.includes(option)
+  const toggleOption = (optionValue: string) => {
+    const isSelected = value.includes(optionValue)
     if (isSelected) {
-      onChange(value.filter((val) => val !== option))
+      onChange(value.filter((val) => val !== optionValue))
     } else {
-      onChange([...value, option])
+      onChange([...value, optionValue])
     }
   }
 
@@ -225,19 +234,19 @@ function DataTableMultiSelectFilter({
           ) : (
             <div className="space-y-1">
               {options.map((option) => {
-                const isChecked = value.includes(option)
+                const isChecked = value.includes(option.value)
                 return (
                   <label
-                    key={option}
+                    key={option.value}
                     className="flex items-center gap-2 rounded px-2 py-1 text-xs hover:bg-accent cursor-pointer select-none"
                   >
                     <input
                       type="checkbox"
                       checked={isChecked}
-                      onChange={() => toggleOption(option)}
+                      onChange={() => toggleOption(option.value)}
                       className="h-3.5 w-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="truncate text-foreground font-medium">{option}</span>
+                    <span className="truncate text-foreground font-medium">{option.label}</span>
                   </label>
                 )
               })}

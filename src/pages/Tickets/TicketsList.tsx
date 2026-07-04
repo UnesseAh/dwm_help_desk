@@ -1,5 +1,9 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import { DataTable } from "@/components/ui/data-table"
+import { useEffect, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import useToken from "@/hooks/useToken"
+import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
 
 // 1. Define the shape of your data
@@ -10,13 +14,6 @@ type Ticket = {
   priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
   client: string
 }
-
-// 2. Define your columns with filter toggles
-
-import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
-import useToken from "@/hooks/useToken"
-import { useAuth } from "@/hooks/useAuth"
 
 export function TicketsList() {
   const [tickets, setTickets] = useState<Ticket[]>([])
