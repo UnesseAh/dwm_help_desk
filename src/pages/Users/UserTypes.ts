@@ -14,3 +14,8 @@ export type User = {
     };
     isActivated: boolean;
 }
+
+export type ChangePasswordData = {
+    userId: number;
+    newPassword: string;
+}

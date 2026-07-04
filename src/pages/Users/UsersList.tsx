@@ -12,17 +12,20 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react"
-import type { User } from "./UserTypes";
+import type { ChangePasswordData, User } from "./UserTypes";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import UserFormModal from "./UserFormModal";
 import DeleteModal from "@/components/dialogs/DeleteModal";
+import ResetPassswordFormModal from "./ResetPasswordFormModal";
 
 export function UsersList() {
   const [stats, setStats] = useState<any>({});
   const [users, setUsers] = useState<User[]>([]);
   const [openForm, setOpenForm] = useState(false);
+  const [openFormResetPass, setOpenFormResetPass] = useState(false);
+
   const [openDelete, setOpenDelete] = useState(false);
   const [selectUser, setSelectUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
@@ -80,6 +83,11 @@ export function UsersList() {
   const handleEdit = useCallback((user: User) => {
     setSelectUser(user);
     setOpenForm(true);
+  }, []);
+
+  const handleOpenResetPassword = useCallback((user: User) => {
+    setSelectUser(user);
+    setOpenFormResetPass(true);
   }, []);
 
 
@@ -191,12 +199,35 @@ export function UsersList() {
     }
   }
 
-  const handleResetPassword = async (data: User) => {
+  const handleResetPasswordSubmit = async (data: ChangePasswordData) => {
     if (!token) return;
     try {
       setLoading(true);
+      const url = `${import.meta.env.VITE_APP_API_BASE_URL}/users/resetPassword`;
+      const method = "PATCH";
 
+      const body =  {
+          user: {
+            id: data.userId,
+            newPassword: data.newPassword
+          }
+        };
 
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!response.ok) throw new Error(`Failed to change passwrod user`);
+
+      alert('le mot de passe est bien changé !')
+
+      setSelectUser(null);
+      setOpenFormResetPass(false);
 
     } catch (error) {
       console.error("Update error:", error);
@@ -295,7 +326,7 @@ export function UsersList() {
                                 </Button> */}
               <Button
                 title='Rénitialisé le mdp'
-                onClick={() => handleResetPassword(row.original)}
+                onClick={() => handleOpenResetPassword(row.original)}
                 className="rounded bg-purple-600 px-3 py-1 text-white"
               >
                 <RotateCcw className="h-4 w-4" />
@@ -490,6 +521,13 @@ export function UsersList() {
             open={openDelete}
             onClose={() => setOpenDelete(false)}
             onConfirm={confirmDelete}
+          />
+
+          <ResetPassswordFormModal
+            open={openFormResetPass}
+            onClose={() => setOpenFormResetPass(false)}
+            userId={selectUser?.id || 0}
+            onSubmit={handleResetPasswordSubmit}
           />
         </div>
       </div>
