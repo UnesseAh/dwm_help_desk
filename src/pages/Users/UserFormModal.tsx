@@ -125,7 +125,7 @@ export default function UserFormModal({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!service?.id || String(service?.id) === "0") {
+        if (role == "AGENET" && (!service?.id || String(service?.id) === "0")) {
             alert("Veuillez sélectionner un service.");
             return;
         }
@@ -143,10 +143,10 @@ export default function UserFormModal({
             role,
             password: !user ? password : undefined,
             service: {
-                id: service.id || 0,
-                name: service.name,
+                id: service?.id || undefined,
+                name: service?.name,
                 department: {
-                    id: department.id || 0,
+                    id: department.id || undefined,
                     name: department.name
                 }
             }

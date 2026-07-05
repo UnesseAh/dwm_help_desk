@@ -5,10 +5,10 @@ export type User = {
     role: string;
     password?: string;
     service?: {
-        id: number;
+        id: number | undefined;
         name?: string;
         department?: {
-            id: number,
+            id: number | undefined,
             name: string
         };
     };

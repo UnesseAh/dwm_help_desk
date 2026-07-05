@@ -1,7 +1,7 @@
 export type Ticket = {
   id: string
   title: string
-  status:"OPEN"| "IN_PROGRESS" | "PENDING" | "RESOLVED" |"CLOSED"
+  status: "OPEN"| "IN_PROGRESS" | "PENDING" | "RESOLVED" |"CLOSED"
   priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
   client: string
 }

@@ -23,12 +23,12 @@ export function Sidebar() {
     navigate('/');
   }
 
-  const filteredNavigation = navigation.filter((item) => {
-    if (user?.role === "ADMIN") return true;
-    if (user?.role === "AGENT") return ["Dashboard", "Tickets"].includes(item.name);
-    if (user?.role === "USER") return ["Dashboard", "Tickets"].includes(item.name);
-    return false;
-  });
+  // const filteredNavigation = navigation.filter((item) => {
+  //   if (user?.role === "ADMIN") return true;
+  //   if (user?.role === "AGENT") return ["Dashboard", "Tickets"].includes(item.name);
+  //   if (user?.role === "USER") return ["Dashboard", "Tickets"].includes(item.name);
+  //   return false;
+  // });
 
   return (
     <div className="flex h-full w-64 flex-col border-r bg-card text-card-foreground">

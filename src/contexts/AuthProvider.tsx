@@ -5,7 +5,7 @@ import { AuthContext } from "./AuthContext";
 type UserData = {
     name: string;
     email: string;
-    department: number;
+    service: string;
     role: string;
 } | null;
 

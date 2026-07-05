@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom"
 import useToken from "@/hooks/useToken"
 import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
-import type { Ticket } from "./TicketsTypes"
+import { PRIORITIES, type Ticket } from "./TicketsTypes"
 
 export function TicketsList() {
   const [tickets, setTickets] = useState<Ticket[]>([])
@@ -13,29 +13,29 @@ export function TicketsList() {
   const { user } = useAuth()
   const navigate = useNavigate();
 
-const columns: ColumnDef<Ticket>[] = [
-  {
-    accessorKey: "id",
-    header: "Ticket ID",
-    enableColumnFilter: true,
-  },
-  {
-    accessorKey: "title",
-    header: "Titre",
-    enableColumnFilter: true,
-  },
-  {
-    accessorKey: "status",
-    header: "Statut",
-    enableColumnFilter: true,
-    filterFn: "arrIncludesSome", 
-    meta: {
-      filterVariant: "multi-select",
+  const columns: ColumnDef<Ticket>[] = [
+    {
+      accessorKey: "id",
+      header: "Ticket ID",
+      enableColumnFilter: true,
     },
-    cell: ({ row }) => {
-      const status = row.getValue("status") as string;
-      return (
-        <span
+    {
+      accessorKey: "title",
+      header: "Titre",
+      enableColumnFilter: true,
+    },
+    {
+      accessorKey: "status",
+      header: "Statut",
+      enableColumnFilter: true,
+      filterFn: "arrIncludesSome",
+      meta: {
+        filterVariant: "multi-select",
+      },
+      cell: ({ row }) => {
+        const status = row.getValue("status") as string;
+        return (
+          <span
             className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold
               ${status === 'OPEN' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : ''}
               ${status === 'IN_PROGRESS' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' : ''}
@@ -46,53 +46,53 @@ const columns: ColumnDef<Ticket>[] = [
           >
             {status.replace('_', ' ')}
           </span>
-      );
+        );
+      },
     },
-  },
-  {
-    accessorKey: "priority",
-    header: "Priorité",
-    enableColumnFilter: true,
-    filterFn: "arrIncludesSome", 
-    meta: {
-      filterVariant: "multi-select",
-    },
-    cell: ({ row }) => {
-      const priority = row.getValue("priority") as string;
-      return (
-        <span className={`
+    {
+      accessorKey: "priority",
+      header: "Priorité",
+      enableColumnFilter: true,
+      filterFn: "arrIncludesSome",
+      meta: {
+        filterVariant: "multi-select",
+      },
+      cell: ({ row }) => {
+        const priority = row.getValue("priority") as string;
+        return (
+          <span className={`
           font-medium
           ${priority === "CRITICAL" ? "text-red-500" : ""}
           ${priority === "HIGH" ? "text-orange-500" : ""}
           ${priority === "MEDIUM" ? "text-blue-500" : ""}
           ${priority === "LOW" ? "text-green-500" : ""}`}
-        >
-          {priority}
-        </span>
-      );
+          >
+            {priority}
+          </span>
+        );
+      },
     },
-  },
-  {
-    accessorKey: "client",
-    header: "Client",
-    enableColumnFilter: true,
-  },
-  {
-    id: "actions",
-    header: "Actions",
-    enableColumnFilter: false,
-    cell: ({ row }) => (
-      <div className="flex items-center">
-        <button
-          className="text-sm text-blue-600 hover:underline"
-          onClick={() => navigate(`/ticket-details?id=${row.original.id}`)}
-        >
-          View
-        </button>
-      </div>
-    ),
-  },
-];
+    {
+      accessorKey: "client",
+      header: "Client",
+      enableColumnFilter: true,
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      enableColumnFilter: false,
+      cell: ({ row }) => (
+        <div className="flex items-center">
+          <button
+            className="text-sm text-blue-600 hover:underline"
+            onClick={() => navigate(`/ticket-details?id=${row.original.id}`)}
+          >
+            View
+          </button>
+        </div>
+      ),
+    },
+  ];
 
 
 
@@ -120,7 +120,7 @@ const columns: ColumnDef<Ticket>[] = [
         console.error("Failed to fetch tickets", err)
       }
     }
-    
+
     if (token) {
       fetchTickets();
     }
@@ -132,7 +132,7 @@ const columns: ColumnDef<Ticket>[] = [
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Tickets</h2>
           <p className="text-muted-foreground">
-           Gérez et consultez toutes les demandes d'assistance ici.
+            Gérez et consultez toutes les demandes d'assistance ici.
           </p>
         </div>
         {user?.role === "USER" && (

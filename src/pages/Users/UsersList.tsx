@@ -155,7 +155,7 @@ export function UsersList() {
           user: {
             name: data.name,
             email: data.email,
-            serviceId: data.service?.id,
+            serviceId: data.service?.id ?? null,
             password: data.password
           }
         };
