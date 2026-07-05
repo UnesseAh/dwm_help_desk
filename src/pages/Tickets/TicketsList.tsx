@@ -5,15 +5,7 @@ import { useNavigate } from "react-router-dom"
 import useToken from "@/hooks/useToken"
 import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
-
-// 1. Define the shape of your data
-type Ticket = {
-  id: string
-  title: string
-  status: "OPEN" | "IN_PROGRESS" | "RESOLVED"
-  priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL"
-  client: string
-}
+import type { Ticket } from "./TicketsTypes"
 
 export function TicketsList() {
   const [tickets, setTickets] = useState<Ticket[]>([])
@@ -39,13 +31,17 @@ const columns: ColumnDef<Ticket>[] = [
     cell: ({ row }) => {
       const status = row.getValue("status") as string;
       return (
-        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold
-          ${status === 'OPEN' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : ''}
-          ${status === 'IN_PROGRESS' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' : ''}
-          ${status === 'RESOLVED' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : ''}`}
-        >
-          {status}
-        </span>
+        <span
+            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold
+              ${status === 'OPEN' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : ''}
+              ${status === 'IN_PROGRESS' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' : ''}
+              ${status === 'PENDING' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' : ''}
+              ${status === 'RESOLVED' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : ''}
+              ${status === 'CLOSED' ? 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' : ''}
+            `}
+          >
+            {status.replace('_', ' ')}
+          </span>
       );
     },
   },
