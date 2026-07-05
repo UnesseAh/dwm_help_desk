@@ -77,11 +77,11 @@ export function CreateTicket() {
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold">
-          Create Ticket
+         Créer un ticket
         </h2>
 
         <p className="mt-1 text-muted-foreground">
-          Submit a new support request.
+         Créez une nouvelle demande d'assistance.
         </p>
       </div>
 
@@ -100,7 +100,7 @@ export function CreateTicket() {
     </div>
 
     <h3 className="text-2xl font-semibold">
-      Ticket Information
+      Ticket Informations
     </h3>
 
   </div>
@@ -114,14 +114,14 @@ export function CreateTicket() {
     <div className="space-y-2 lg:col-span-4">
 
       <label className="text-sm font-medium">
-        Title
+        Titre
       </label>
 
       <input
         type="text"
         value={title}
         onChange={e => setTitle(e.target.value)}
-        placeholder="Enter a short title for your issue"
+        placeholder="Saisissez un titre court pour votre problème."
         className="h-12 w-full rounded-lg border border-border bg-background px-4 outline-none transition-colors focus:border-primary"
       />
 
@@ -132,7 +132,7 @@ export function CreateTicket() {
     <div className="space-y-2 lg:col-span-4">
 
       <label className="text-sm font-medium">
-        Department
+        Département
       </label>
 
       <select
@@ -140,7 +140,7 @@ export function CreateTicket() {
         onChange={e => setDepartmentId(e.target.value)}
         className="h-12 w-full rounded-lg border border-border bg-background px-4 outline-none focus:border-primary"
       >
-        <option value="">Select a department</option>
+        <option value="">Sélectionnez un département</option>
         {departments.map((d: any) => (
           <option key={d.id} value={d.id}>{d.name}</option>
         ))}
@@ -162,7 +162,7 @@ export function CreateTicket() {
         disabled={!departmentId}
         className="h-12 w-full rounded-lg border border-border bg-background px-4 outline-none focus:border-primary disabled:opacity-50"
       >
-        <option value="">Select a service</option>
+        <option value="">Sélectionnez un service</option>
         {services.map((s: any) => (
           <option key={s.id} value={s.id}>{s.name}</option>
         ))}
@@ -175,7 +175,7 @@ export function CreateTicket() {
     <div className="space-y-2 lg:col-span-4">
 
       <label className="text-sm font-medium">
-        Priority
+        Priorité
       </label>
 
       <div className="flex h-12 flex-wrap items-center gap-6">
@@ -245,21 +245,21 @@ export function CreateTicket() {
   <div className="space-y-3">
 
     <label className="text-sm font-medium">
-      Describe your issue in detail
+      Décrivez votre demande en détail
     </label>
 
     <textarea
       rows={6}
       value={description}
       onChange={e => setDescription(e.target.value)}
-      placeholder="Provide as much detail as possible so we can help you better..."
+      placeholder="Fournissez autant de détails que possible afin que nous puissions vous aider au mieux..."
       className="w-full resize-none rounded-lg border border-border bg-background p-4 outline-none transition-colors focus:border-primary"
     />
 
     <div className="flex justify-end">
 
       <span className="text-sm text-muted-foreground">
-        0 / 1000
+       
       </span>
 
     </div>
@@ -291,7 +291,7 @@ export function CreateTicket() {
         </h3>
 
         <p className="text-sm text-muted-foreground">
-          Review your information and submit your ticket.
+         Vérifiez vos informations, puis soumettez votre ticket.
         </p>
 
       </div>
@@ -317,7 +317,7 @@ export function CreateTicket() {
           hover:bg-muted
         "
       >
-        Cancel
+        Annuler
       </button>
 
       {/* Create Ticket */}
@@ -341,7 +341,7 @@ export function CreateTicket() {
           disabled:opacity-50
         "
       >
-        Create Ticket
+        Créer un ticket
 
         <Send className="h-4 w-4" />
 

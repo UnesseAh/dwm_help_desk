@@ -2,162 +2,162 @@ export function MyTickets() {
   return (
     <div className="space-y-6">
 
-     {/* Header Card */}
+      {/* Header Card */}
 
-<div className="rounded-lg border border-border bg-card p-6">
+      <div className="rounded-lg border border-border bg-card p-6">
 
-  <h2 className="text-3xl font-bold">
-    My Tickets
-  </h2>
+        <h2 className="text-3xl font-bold">
+          Mes Tickets
+        </h2>
 
-  <p className="mt-2 text-muted-foreground">
-    View and track all your submitted support requests.
-  </p>
+        <p className="mt-2 text-muted-foreground">
+          Consultez et suivez toutes vos demandes d'assistance soumises.
+        </p>
 
-</div>
+      </div>
 
 
-    {/* Tickets Table */}
+      {/* Tickets Table */}
 
-<div className="rounded-lg border border-border bg-card p-6">
+      <div className="rounded-lg border border-border bg-card p-6">
 
-  {/* Top Bar */}
+        {/* Top Bar */}
 
-  <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-    {/* Search + Filters */}
+          {/* Search + Filters */}
 
-    <div className="flex flex-1 flex-col gap-4 md:flex-row">
+          <div className="flex flex-1 flex-col gap-4 md:flex-row">
 
-      {/* Search */}
+            {/* Search */}
 
-      <input
-        type="text"
-        placeholder="Search tickets..."
-        className="h-11 rounded-lg border border-border bg-background px-4 outline-none focus:ring-2 focus:ring-primary md:w-80"
-      />
+            <input
+              type="text"
+              placeholder="Search tickets..."
+              className="h-11 rounded-lg border border-border bg-background px-4 outline-none focus:ring-2 focus:ring-primary md:w-80"
+            />
 
-      {/* Status */}
+            {/* Status */}
 
-      <select className="h-11 rounded-lg border border-border bg-background px-4 outline-none md:w-48">
+            <select className="h-11 rounded-lg border border-border bg-background px-4 outline-none md:w-48">
 
-        <option>Status</option>
-        <option>Open</option>
-        <option>In Progress</option>
-        <option>Resolved</option>
-        <option>Closed</option>
+              <option>Status</option>
+              <option>Open</option>
+              <option>In Progress</option>
+              <option>Resolved</option>
+              <option>Closed</option>
 
-      </select>
+            </select>
 
-      {/* Priority */}
+            {/* Priority */}
 
-      <select className="h-11 rounded-lg border border-border bg-background px-4 outline-none md:w-48">
+            <select className="h-11 rounded-lg border border-border bg-background px-4 outline-none md:w-48">
 
-        <option>Priority</option>
-        <option>Low</option>
-        <option>Medium</option>
-        <option>High</option>
+              <option>Priority</option>
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
 
-      </select>
+            </select>
 
-    </div>
+          </div>
 
-    {/* Button */}
+          {/* Button */}
 
-    <button className="h-11 rounded-lg bg-primary px-6 font-medium text-primary-foreground transition hover:opacity-90">
+          <button className="h-11 rounded-lg bg-primary px-6 font-medium text-primary-foreground transition hover:opacity-90">
 
-      + New Ticket
+            + Nouveau ticket
 
-    </button>
+          </button>
 
-  </div>
+        </div>
 
-  {/* Table */}
+        {/* Table */}
 
-  <div className="overflow-x-auto">
+        <div className="overflow-x-auto">
 
-    <table className="w-full text-sm">
+          <table className="w-full text-sm">
 
-      <thead>
+            <thead>
 
-        <tr className="border-b">
+              <tr className="border-b">
 
-          <th className="px-4 py-3 text-left">Ticket ID</th>
-          <th className="px-4 py-3 text-left">Subject</th>
-          <th className="px-4 py-3 text-left">Category</th>
-          <th className="px-4 py-3 text-left">Created</th>
-          <th className="px-4 py-3 text-left">Status</th>
-          <th className="px-4 py-3 text-left">Priority</th>
-          <th className="px-4 py-3 text-center">Action</th>
+                <th className="px-4 py-3 text-left">Ticket ID</th>
+                <th className="px-4 py-3 text-left">Subject</th>
+                <th className="px-4 py-3 text-left">Category</th>
+                <th className="px-4 py-3 text-left">Created</th>
+                <th className="px-4 py-3 text-left">Status</th>
+                <th className="px-4 py-3 text-left">Priority</th>
+                <th className="px-4 py-3 text-center">Action</th>
 
-        </tr>
+              </tr>
 
-      </thead>
+            </thead>
 
-      <tbody>
+            <tbody>
 
-        {Array.from({ length: 10 }).map((_, index) => (
+              {Array.from({ length: 10 }).map((_, index) => (
 
-          <tr key={index} className="border-b">
+                <tr key={index} className="border-b">
 
-            <td className="px-4 py-4 text-muted-foreground">-----</td>
-            <td className="px-4 py-4 text-muted-foreground">----------------</td>
-            <td className="px-4 py-4 text-muted-foreground">----------</td>
-            <td className="px-4 py-4 text-muted-foreground">--------</td>
-            <td className="px-4 py-4 text-muted-foreground">----------</td>
-            <td className="px-4 py-4 text-muted-foreground">--------</td>
+                  <td className="px-4 py-4 text-muted-foreground">-----</td>
+                  <td className="px-4 py-4 text-muted-foreground">----------------</td>
+                  <td className="px-4 py-4 text-muted-foreground">----------</td>
+                  <td className="px-4 py-4 text-muted-foreground">--------</td>
+                  <td className="px-4 py-4 text-muted-foreground">----------</td>
+                  <td className="px-4 py-4 text-muted-foreground">--------</td>
 
-            <td className="px-4 py-4 text-center">
+                  <td className="px-4 py-4 text-center">
 
-              👁️
+                    👁️
 
-            </td>
+                  </td>
 
-          </tr>
+                </tr>
 
-        ))}
+              ))}
 
-      </tbody>
+            </tbody>
 
-    </table>
+          </table>
 
-  </div>
+        </div>
 
-  {/* Footer */}
+        {/* Footer */}
 
-  <div className="mt-6 flex flex-col gap-4 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
+        <div className="mt-6 flex flex-col gap-4 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
 
-    <span>
-      Showing 1–10 of 35 tickets
-    </span>
+          <span>
+            Showing 1–10 of 35 tickets
+          </span>
 
-    <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
 
-      <button className="h-9 w-9 rounded-md border border-border">
-        1
-      </button>
+            <button className="h-9 w-9 rounded-md border border-border">
+              1
+            </button>
 
-      <button className="h-9 w-9 rounded-md border border-border">
-        2
-      </button>
+            <button className="h-9 w-9 rounded-md border border-border">
+              2
+            </button>
 
-      <button className="h-9 w-9 rounded-md border border-border">
-        3
-      </button>
+            <button className="h-9 w-9 rounded-md border border-border">
+              3
+            </button>
 
-      <button className="h-9 w-9 rounded-md border border-border">
-        4
-      </button>
+            <button className="h-9 w-9 rounded-md border border-border">
+              4
+            </button>
 
-      <button className="rounded-md border border-border px-3 py-2">
-        Next
-      </button>
+            <button className="rounded-md border border-border px-3 py-2">
+              Next
+            </button>
 
-    </div>
+          </div>
 
-  </div>
+        </div>
 
-</div>
+      </div>
 
 
 

@@ -207,7 +207,7 @@ export function TicketDetails() {
   }
 
   if (loading) {
-    return <div className="rounded-lg border border-border bg-card p-6">Loading ticket...</div>
+    return <div className="rounded-lg border border-border bg-card p-6">Chargement ticket...</div>
   }
 
   if (!ticket) {
@@ -225,8 +225,8 @@ export function TicketDetails() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Ticket Details</h2>
-        <p className="mt-1 text-muted-foreground">View the ticket request and continue the conversation.</p>
+        <h2 className="text-2xl font-bold">Détail Ticket</h2>
+        <p className="mt-1 text-muted-foreground">Consultez la demande de ticket et poursuivez la conversation.</p>
       </div>
 
       {error ? (
@@ -237,32 +237,32 @@ export function TicketDetails() {
 
       <div className="grid gap-6 lg:grid-cols-12">
         <div className="rounded-lg border border-border bg-card p-6 lg:col-span-8">
-          <h3 className="mb-6 text-lg font-semibold">Ticket Information</h3>
+          <h3 className="mb-6 text-lg font-semibold">Ticket Informations</h3>
           <div className="space-y-4">
             <DetailRow label="Ticket ID" value={ticket.id} />
-            <DetailRow label="Title" value={ticket.title} />
+            <DetailRow label="Titre" value={ticket.title} />
             <DetailRow label="Description" value={ticket.description} />
             <DetailRow label="Department" value={ticket.service.department.name} />
             <DetailRow label="Service" value={ticket.service.name} />
-            <DetailRow label="Priority" value={priorityLabels[ticket.priority]} />
-            <DetailRow label="Status" value={statusLabels[ticket.status]} />
-            <DetailRow label="Created" value={formatDate(ticket.createdAt)} />
+            <DetailRow label="Priorité" value={priorityLabels[ticket.priority]} />
+            <DetailRow label="Statut" value={statusLabels[ticket.status]} />
+            <DetailRow label="Crée le" value={formatDate(ticket.createdAt)} />
           </div>
         </div>
 
         <div className="space-y-6 lg:col-span-4">
           <div className="rounded-lg border border-border bg-card p-6">
-            <h3 className="mb-6 text-lg font-semibold">Created By</h3>
+            <h3 className="mb-6 text-lg font-semibold">Crée Par</h3>
             <div className="space-y-4">
-              <DetailRow label="Name" value={ticket.client.name} />
+              <DetailRow label="Nom" value={ticket.client.name} />
               <DetailRow label="Email" value={ticket.client.email} />
             </div>
           </div>
 
           {canChangeStatus ? (
             <div className="rounded-lg border border-border bg-card p-6">
-              <h3 className="mb-4 text-lg font-semibold">Agent Actions</h3>
-              <label className="text-sm font-medium text-muted-foreground">Ticket status</label>
+              <h3 className="mb-4 text-lg font-semibold">Actions d'agent</h3>
+              <label className="text-sm font-medium text-muted-foreground">Ticket statut</label>
               <select
                 value={ticket.status}
                 disabled={savingStatus}
@@ -285,7 +285,7 @@ export function TicketDetails() {
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
             <MessageSquarePlus className="h-5 w-5 text-primary" />
           </div>
-          <h3 className="text-lg font-semibold">Comments</h3>
+          <h3 className="text-lg font-semibold">Commentaires</h3>
         </div>
 
         <div className="space-y-4">
@@ -312,23 +312,23 @@ export function TicketDetails() {
             })
           ) : (
             <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
-              No comments yet.
+              Aucun commentaire pour le moment.
             </p>
           )}
         </div>
 
         <div className="mt-6 space-y-3">
-          <label className="text-sm font-medium">Add a comment</label>
+          <label className="text-sm font-medium">Ajouter un commentaire</label>
           <textarea
             rows={4}
             value={comment}
             onChange={(event) => setComment(event.target.value)}
-            placeholder="Write a message about this ticket..."
+            placeholder="Écrivez un message à propos de ce ticket..."
             className="w-full resize-none rounded-lg border border-border bg-background p-4 outline-none transition-colors focus:border-primary"
           />
           <div className="flex justify-end">
             <Button onClick={sendComment} disabled={!comment.trim() || sendingComment}>
-              Send comment
+              Envoyer commentaire
               <Send className="h-4 w-4" />
             </Button>
           </div>

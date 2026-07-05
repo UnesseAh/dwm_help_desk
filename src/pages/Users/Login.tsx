@@ -40,8 +40,8 @@ export default function Login() {
             <div className="h-screen bg-gray-900">
                 <div className="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
                     <div className="sm:mx-auto sm:w-full sm:max-w-sm">
-                        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRNGdpWSj6aNd3AkwzIRASO05hkfWCRG1zvbg&s" alt="ENSET" className="mx-auto h-10 w-auto" />
-                        <h2 className="mt-10 text-center text-2xl/9 font-bold tracking-tight text-white">ENSET IT HELP DESK</h2>
+                        <img width={500} height={300} src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRNGdpWSj6aNd3AkwzIRASO05hkfWCRG1zvbg&s" alt="ENSET" className="mx-auto rounded" />
+                        <h2 className="mt-10 text-center text-4xl/9 font-bold tracking-tight text-white">IT HELP DESK CONNEXION</h2>
                     </div>
 
                     <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">

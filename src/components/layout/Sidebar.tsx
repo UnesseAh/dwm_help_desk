@@ -10,7 +10,7 @@ const navigation = [
   { name: "Services", href: "/services", icon: List,  roles: ["ADMIN"] },
   { name: "Départments", href: "/departments", icon: List, roles: ["ADMIN"] },
   { name: "Users", href: "/users", icon: Users, roles: ["ADMIN"] },
-  { name: "Settings", href: "/settings", icon: Settings, roles: ["ADMIN", "AGENT", "USER"] }
+  { name: "Settings", href: "/settings", icon: Settings, roles: ["ADMIN"] }
 ]
 
 export function Sidebar() {
@@ -33,7 +33,7 @@ export function Sidebar() {
   return (
     <div className="flex h-full w-64 flex-col border-r bg-card text-card-foreground">
       <div className="flex h-16 items-center px-6 border-b">
-        <h1 className="text-xl font-bold tracking-tight text-primary">HelpDesk.</h1>
+        <h1 className="text-xl font-bold tracking-tight text-primary">IT HELP DESK</h1>
       </div>
       <nav className="flex-1 space-y-1 px-4 py-6">
         {navigation.map((item) => (

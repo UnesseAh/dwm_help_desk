@@ -7,6 +7,7 @@ import { DataTable } from "@/components/ui/data-table";
 export function Dashboard() {
 
   const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [totalTickets, setTotalTickets] = useState(0);
   const [statsStatus, setStatsStatus] = useState({});
   const [statsPriorities, setSPriorities] = useState({});
   const [gradient, setGradian] = useState("");
@@ -85,7 +86,7 @@ export function Dashboard() {
           setSPriorities(normalizeData);
 
           const total = Object.values(normalizeData).reduce((a, b) => a + b, 0);
-
+          setTotalTickets(total);
           let start = 0;
 
           const colors: any = {
@@ -105,7 +106,6 @@ export function Dashboard() {
             return segment;
           }).join(', ');
 
-          console.log(gradient);
           setGradian(gradient);
         }
       } catch (err) {
@@ -210,7 +210,8 @@ export function Dashboard() {
           </p>
 
           <h3 className="mt-2 text-2xl font-bold">
-            {tickets.length}
+             {totalTickets}
+             
           </h3>
 
           <p className="mt-1 text-xs text-muted-foreground">
@@ -349,7 +350,7 @@ export function Dashboard() {
       <div className="rounded-lg border border-border bg-card p-4">
 
         <h3 className="mb-6 text-lg font-semibold">
-          Dérnière Tickets
+          Dérnières Tickets
         </h3>
         <div className="overflow-x-auto">
           <DataTable columns={columns} data={tickets} />

@@ -21,13 +21,17 @@ const columns: ColumnDef<Ticket>[] = [
   },
   {
     accessorKey: "title",
-    header: "Title",
+    header: "Titre",
     enableColumnFilter: true,
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: "Statut",
     enableColumnFilter: true,
+    filterFn: "arrIncludesSome", 
+    meta: {
+      filterVariant: "multi-select",
+    },
     cell: ({ row }) => {
       const status = row.getValue("status") as string;
       return (
@@ -47,8 +51,12 @@ const columns: ColumnDef<Ticket>[] = [
   },
   {
     accessorKey: "priority",
-    header: "Priority",
+    header: "Priorité",
     enableColumnFilter: true,
+    filterFn: "arrIncludesSome", 
+    meta: {
+      filterVariant: "multi-select",
+    },
     cell: ({ row }) => {
       const priority = row.getValue("priority") as string;
       return (
@@ -124,12 +132,12 @@ const columns: ColumnDef<Ticket>[] = [
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Tickets</h2>
           <p className="text-muted-foreground">
-            Manage and view all support requests here.
+           Gérez et consultez toutes les demandes d'assistance ici.
           </p>
         </div>
         {user?.role === "USER" && (
           <Button onClick={() => navigate("/create-ticket")}>
-            Create Ticket
+            Nouveau Ticket
           </Button>
         )}
       </div>
