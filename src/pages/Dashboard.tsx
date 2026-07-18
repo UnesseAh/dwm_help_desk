@@ -1,6 +1,185 @@
-import { Bell, Search } from "lucide-react"
+import useToken from "@/hooks/useToken";
+import { useEffect, useState } from "react";
+import { PRIORITIES, STATUS, type Ticket } from "./Tickets/TicketsTypes";
+import type { ColumnDef } from "@tanstack/react-table";
+import { DataTable } from "@/components/ui/data-table";
 
 export function Dashboard() {
+
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [totalTickets, setTotalTickets] = useState(0);
+  const [statsStatus, setStatsStatus] = useState({});
+  const [statsPriorities, setSPriorities] = useState({});
+  const [gradient, setGradian] = useState("");
+
+  const { token } = useToken();
+
+  useEffect(() => {
+    const fetchTickets = async () => {
+      try {
+        const response = await fetch(import.meta.env.VITE_APP_API_BASE_URL + "/tickets?limit=5&order=desc", {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const transformedData = data.map((t: any) => ({
+            id: t.id.toString(),
+            title: t.title,
+            status: t.status,
+            priority: t.priority,
+            client: t.client?.name || 'Unknown'
+          }));
+          setTickets(transformedData);
+        }
+      } catch (err) {
+        console.error("Failed to fetch tickets", err)
+      }
+    }
+
+    if (token) {
+      fetchTickets();
+    }
+  }, [token])
+
+
+  useEffect(() => {
+    const fetchStatsStatus = async () => {
+      try {
+        const response = await fetch(import.meta.env.VITE_APP_API_BASE_URL + "/stats/tickets?colStats=status", {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const normalizeData = Object.fromEntries(
+            STATUS.map(status => [status, data[status] ?? 0])
+          );
+          setStatsStatus(normalizeData);
+        }
+      } catch (err) {
+        console.error("Failed to fetch tickets", err)
+      }
+    }
+
+    if (token) {
+      fetchStatsStatus();
+    }
+  }, [token])
+
+
+  useEffect(() => {
+    const fetchStatsPriority = async () => {
+      try {
+        const response = await fetch(import.meta.env.VITE_APP_API_BASE_URL + "/stats/tickets?colStats=priority", {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const normalizeData = Object.fromEntries(
+            PRIORITIES.map(priority => [priority, data[priority] ?? 0])
+          );
+          setSPriorities(normalizeData);
+
+          const total = Object.values(normalizeData).reduce((a, b) => a + b, 0);
+          setTotalTickets(total);
+          let start = 0;
+
+          const colors: any = {
+            LOW: '#22c55e',
+            MEDIUM: '#3b82f6',
+            HIGH: '#f97316',
+            CRITICAL: '#ef4444'
+          };
+
+          const gradient = PRIORITIES.map(priority => {
+            const percent = total === 0 ? 0 : (normalizeData[priority] / total) * 100;
+            const end = start + percent;
+
+            const segment = `${colors[priority]} ${start}% ${end}%`;
+            start = end;
+
+            return segment;
+          }).join(', ');
+
+          setGradian(gradient);
+        }
+      } catch (err) {
+        console.error("Failed to fetch tickets", err)
+      }
+    }
+
+    if (token) {
+      fetchStatsPriority();
+    }
+  }, [token])
+
+
+
+  const columns: ColumnDef<Ticket>[] = [
+    {
+      accessorKey: "id",
+      header: "Ticket ID",
+      enableColumnFilter: false,
+
+    },
+    {
+      accessorKey: "title",
+      header: "Title",
+      enableColumnFilter: false,
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      enableColumnFilter: false,
+      cell: ({ row }) => {
+        const status = row.getValue("status") as string;
+        return (
+          <span
+            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold
+                ${status === 'OPEN' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : ''}
+                ${status === 'IN_PROGRESS' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' : ''}
+                ${status === 'PENDING' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' : ''}
+                ${status === 'RESOLVED' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : ''}
+                ${status === 'CLOSED' ? 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200' : ''}
+              `}
+          >
+            {status.replace('_', ' ')}
+          </span>
+        );
+      },
+    },
+    {
+      accessorKey: "priority",
+      header: "Priority",
+      enableColumnFilter: false,
+      cell: ({ row }) => {
+        const priority = row.getValue("priority") as string;
+        return (
+          <span className={`
+              font-medium
+              ${priority === "CRITICAL" ? "text-red-500" : ""}
+              ${priority === "HIGH" ? "text-orange-500" : ""}
+              ${priority === "MEDIUM" ? "text-blue-500" : ""}
+              ${priority === "LOW" ? "text-green-500" : ""}`}
+          >
+            {priority}
+          </span>
+        );
+      },
+    },
+    {
+      accessorKey: "client",
+      header: "Client",
+      enableColumnFilter: false
+    },
+  ];
+
+
   return (
     <div className="space-y-6">
 
@@ -22,7 +201,7 @@ export function Dashboard() {
       </div>
 
       {/* Cartes statistiques */}
-      <div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 xl:grid-cols-6">
 
         {/* Total Tickets */}
         <div className="rounded-lg border border-border bg-card p-3">
@@ -31,7 +210,8 @@ export function Dashboard() {
           </p>
 
           <h3 className="mt-2 text-2xl font-bold">
-            128
+             {totalTickets}
+             
           </h3>
 
           <p className="mt-1 text-xs text-muted-foreground">
@@ -46,13 +226,27 @@ export function Dashboard() {
           </p>
 
           <h3 className="mt-2 text-2xl font-bold">
-            42
+            {statsStatus?.OPEN ?? 0}
           </h3>
 
           <p className="mt-1 text-xs text-muted-foreground">
-            Require attention
           </p>
         </div>
+
+        {/* In progress Tickets */}
+        <div className="rounded-lg border border-border bg-card p-3">
+          <p className="text-sm text-muted-foreground">
+            In progress Tickets
+          </p>
+
+          <h3 className="mt-2 text-2xl font-bold">
+            {statsStatus?.IN_PROGRESS ?? 0}
+          </h3>
+
+          <p className="mt-1 text-xs text-muted-foreground">
+          </p>
+        </div>
+
 
         {/* Pending Tickets */}
         <div className="rounded-lg border border-border bg-card p-3">
@@ -61,11 +255,25 @@ export function Dashboard() {
           </p>
 
           <h3 className="mt-2 text-2xl font-bold">
-            36
+            {statsStatus?.PENDING ?? 0}
           </h3>
 
           <p className="mt-1 text-xs text-muted-foreground">
-            In progress
+          </p>
+        </div>
+
+        {/* Closed Tickets */}
+        <div className="rounded-lg border border-border bg-card p-3">
+          <p className="text-sm text-muted-foreground">
+            Resolved Tickets
+          </p>
+
+          <h3 className="mt-2 text-2xl font-bold">
+            {statsStatus?.RESOLVED ?? 0}
+          </h3>
+
+          <p className="mt-1 text-xs text-muted-foreground">
+
           </p>
         </div>
 
@@ -76,97 +284,24 @@ export function Dashboard() {
           </p>
 
           <h3 className="mt-2 text-2xl font-bold">
-            50
+            {statsStatus?.CLOSED ?? 0}
           </h3>
 
           <p className="mt-1 text-xs text-muted-foreground">
-            This month
+
           </p>
         </div>
 
       </div>
 
       {/* Section des graphiques */}
-      <div className="grid gap-4 lg:grid-cols-10">
-
-        {/* Tickets Overview */}
-        <div className="rounded-lg border border-border bg-card p-4 lg:col-span-4">
-
-          <h3 className="mb-6 text-lg font-semibold">
-            Tickets Overview
-          </h3>
-
-          <div className="relative h-48">
-
-            {/* Axe Y */}
-            <div className="absolute left-0 top-0 flex h-40 flex-col justify-between text-sm text-muted-foreground">
-              <span>80</span>
-              <span>60</span>
-              <span>40</span>
-              <span>20</span>
-              <span>0</span>
-            </div>
-
-            {/* Zone graphique */}
-            <div className="ml-10">
-
-              <svg
-                viewBox="0 0 700 220"
-                className="h-40 w-full"
-              >
-                {/* Courbe */}
-                <polyline
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  points="
-                    40,150
-                    130,95
-                    220,135
-                    310,75
-                    400,155
-                    490,105
-                    580,150
-                    670,60
-                  "
-                />
-
-                {/* Points */}
-                <circle cx="40" cy="150" r="6" fill="white" stroke="black" strokeWidth="3" />
-                <circle cx="130" cy="95" r="6" fill="white" stroke="black" strokeWidth="3" />
-                <circle cx="220" cy="135" r="6" fill="white" stroke="black" strokeWidth="3" />
-                <circle cx="310" cy="75" r="6" fill="white" stroke="black" strokeWidth="3" />
-                <circle cx="400" cy="155" r="6" fill="white" stroke="black" strokeWidth="3" />
-                <circle cx="490" cy="105" r="6" fill="white" stroke="black" strokeWidth="3" />
-                <circle cx="580" cy="150" r="6" fill="white" stroke="black" strokeWidth="3" />
-                <circle cx="670" cy="60" r="6" fill="white" stroke="black" strokeWidth="3" />
-
-                {/* Ligne de base */}
-                
-              </svg>
-
-              {/* Axe X */}
-              <div className="-mt-2 flex justify-between px-2 text-sm">
-                <span>Mon</span>
-                <span>Tue</span>
-                <span>Wed</span>
-                <span>Thu</span>
-                <span>Fri</span>
-                <span>Sat</span>
-                <span>Sun</span>
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
+      <div className="grid gap-4">
 
         {/* Tickets by Priority */}
         <div className="rounded-lg border border-border bg-card p-4 lg:col-span-3">
 
           <h3 className="mb-6 text-lg font-semibold whitespace-nowrap">
-            Tickets by Priority
+            Tickets par priorite
           </h3>
 
           <div className="flex items-center justify-center gap-8 h-full">
@@ -175,12 +310,7 @@ export function Dashboard() {
             <div
               className="h-32 w-32 shrink-0 rounded-full"
               style={{
-                background: `conic-gradient(
-                  #ef4444 0% 6%,
-                  #f97316 6% 22%,
-                  #3b82f6 22% 66%,
-                  #22c55e 66% 100%
-                )`,
+                background: `conic-gradient(${gradient})`,
               }}
             >
               <div className="m-[16px] h-[96px] w-[96px] rounded-full bg-background"></div>
@@ -191,22 +321,22 @@ export function Dashboard() {
 
               <div className="flex items-center gap-3">
                 <div className="h-4 w-4 rounded bg-red-500"></div>
-                <span>Critical (8)</span>
+                <span>Critical ({statsPriorities?.CRITICAL ?? 0})</span>
               </div>
 
               <div className="flex items-center gap-3">
                 <div className="h-4 w-4 rounded bg-orange-500"></div>
-                <span>High (20)</span>
+                <span>High ({statsPriorities?.HIGH ?? 0})</span>
               </div>
 
               <div className="flex items-center gap-3">
                 <div className="h-4 w-4 rounded bg-blue-500"></div>
-                <span>Medium (60)</span>
+                <span>Medium ({statsPriorities?.MEDIUM ?? 0})</span>
               </div>
 
               <div className="flex items-center gap-3">
                 <div className="h-4 w-4 rounded bg-green-500"></div>
-                <span>Low (48)</span>
+                <span>Low ({statsPriorities?.LOW ?? 0})</span>
               </div>
 
             </div>
@@ -214,154 +344,18 @@ export function Dashboard() {
           </div>
 
         </div>
-                    {/* Quick Actions */}
-      <div className="rounded-lg border border-border bg-card p-4 lg:col-span-3">
+
+      </div>
+      {/* Recent Tickets */}
+      <div className="rounded-lg border border-border bg-card p-4">
 
         <h3 className="mb-6 text-lg font-semibold">
-          Quick Actions
+          Dérnières Tickets
         </h3>
-
-        <div className="space-y-3">
-
-          <button className="flex w-full items-center justify-between rounded-lg border p-3 hover:bg-muted">
-            <span>Create Ticket</span>
-            <span>+</span>
-          </button>
-
-          <button className="flex w-full items-center justify-between rounded-lg border p-3 hover:bg-muted">
-            <span>View All Tickets</span>
-            <span>→</span>
-          </button>
-
-          <button className="flex w-full items-center justify-between rounded-lg border p-3 hover:bg-muted">
-            <span>Add New User</span>
-            <span>+</span>
-          </button>
-
-  </div>
-
-</div>
+        <div className="overflow-x-auto">
+          <DataTable columns={columns} data={tickets} />
+        </div>
       </div>
-                        {/* Recent Tickets */}
-          <div className="rounded-lg border border-border bg-card p-4">
-
-            <h3 className="mb-6 text-lg font-semibold">
-              Recent Tickets
-            </h3>
-          <div className="overflow-x-auto">
-
-            <table className="w-full text-sm">
-
-              <thead>
-                <tr className="border-b text-left">
-                  <th className="pb-3">Ticket ID</th>
-                  <th className="pb-3">Title</th>
-                  <th className="pb-3">Status</th>
-                  <th className="pb-3">Priority</th>
-                  <th className="pb-3">Client</th>
-                  <th className="pb-3">Actions</th>
-                </tr>
-              </thead>
-
-              <tbody>
-
-                <tr className="border-b">
-                  <td className="py-4">TCK-1001</td>
-                  <td>Cannot access VPN</td>
-                  <td>
-                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-700">
-                      OPEN
-                    </span>
-                  </td>
-                  <td className="text-orange-500 font-medium">
-                    HIGH
-                  </td>
-                  <td>Alice Smith</td>
-                  <td>
-                    <button className="mr-3 text-blue-600 hover:underline">
-                      View
-                    </button>
-
-                    <button className="text-green-600 hover:underline">
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-
-                <tr className="border-b">
-                  <td className="py-4">TCK-1002</td>
-                  <td>SAP is crashing</td>
-                  <td>
-                    <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs text-yellow-700">
-                      IN PROGRESS
-                    </span>
-                  </td>
-                  <td className="text-red-500 font-medium">
-                    CRITICAL
-                  </td>
-                  <td>Charlie Davis</td>
-                  <td>
-                    <button className="mr-3 text-blue-600 hover:underline">
-                      View
-                    </button>
-
-                    <button className="text-green-600 hover:underline">
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-
-                <tr>
-                  <td className="py-4">TCK-1003</td>
-                  <td>Password reset</td>
-                  <td>
-                    <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700">
-                      RESOLVED
-                    </span>
-                  </td>
-                  <td className="text-blue-500 font-medium">
-                    MEDIUM
-                  </td>
-                  <td>Diana Prince</td>
-                  <td>
-                    <button className="mr-3 text-blue-600 hover:underline">
-                      View
-                    </button>
-
-                    <button className="text-green-600 hover:underline">
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-                <tr className="border-t">
-            <td className="py-4">TCK-1004</td>
-            <td>Network outage</td>
-            <td>
-              <span className="rounded-full bg-orange-100 px-3 py-1 text-xs text-orange-700">
-                PENDING
-              </span>
-            </td>
-            <td className="text-green-500 font-medium">
-              LOW
-            </td>
-            <td>Emma Brown</td>
-            <td>
-              <button className="mr-3 text-blue-600 hover:underline">
-                View
-              </button>
-
-              <button className="text-green-600 hover:underline">
-                Edit
-              </button>
-            </td>
-          </tr>
-
-              </tbody>
-
-            </table>
-
-          </div>
-          </div>
     </div>
   )
 }

@@ -1,26 +1,26 @@
-import { Button } from '@/components/ui/button';
-import { DataTable } from '@/components/ui/data-table';
-import type { ColumnDef } from '@tanstack/react-table';
-import type { Department } from './DepartmentTypes';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import DepartmentFormModal from './DepartmentFormModal';
-import DeleteModal from '@/components/dialogs/DeleteModal';
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import type { Service } from './ServiceType';
 import useToken from '@/hooks/useToken';
+import type { ColumnDef } from '@tanstack/react-table';
+import { Button } from '@/components/ui/button';
 import { Edit, PlusCircle, Trash } from 'lucide-react';
+import { DataTable } from '@/components/ui/data-table';
+import ServiceFormModal from './ServiceFormModal';
+import DeleteModal from '@/components/dialogs/DeleteModal';
 
+export default function ServicesList() {
 
-export default function DepartmentsList() {
-    const [depatments, setDepartments] = useState<Department[]>([]);
+    const [services, setServices] = useState<Service[]>([]);
     const [openForm, setOpenForm] = useState(false);
-    const [openDelete, setOpenDelete] = useState(false);
-    const [selectDepartment, setSelectDepartment] = useState<Department | null>(null);
+    const [opneDelete, setOpenDelete] = useState(false);
+    const [selectService, setSelectService] = useState<Service | null>(null);
     const [loading, setLoading] = useState(false);
     const { token } = useToken();
 
-    const fetchAllDepartments = useCallback(async () => {
+    const fetchAllServices = useCallback(async () => {
         setLoading(true);
         const response = await fetch(
-            import.meta.env.VITE_APP_API_BASE_URL + "/departments",
+            import.meta.env.VITE_APP_API_BASE_URL + "/services",
             {
                 method: "GET",
                 headers: {
@@ -33,35 +33,35 @@ export default function DepartmentsList() {
         if (!response.ok) throw new Error("Failed to fetch departments");
         const data = await response.json();
         setLoading(false);
-        setDepartments(data.data);
+        setServices(data.data);
     }, [token]);
 
     useEffect(() => {
-        fetchAllDepartments()
+        fetchAllServices()
     }, []);
 
     const handleAdd = useCallback(() => {
-        setSelectDepartment(null);
+        setSelectService(null);
         setOpenForm(true);
     }, []);
 
-    const handleEdit = useCallback((department: Department) => {
-        setSelectDepartment(department);
+    const handleEdit = useCallback((service: Service) => {
+        setSelectService(service);
         setOpenForm(true);
     }, []);
 
-    const handleDelete = useCallback((department: Department) => {
-        setSelectDepartment(department);
+    const handleDelete = useCallback((service: Service) => {
+        setSelectService(service);
         setOpenDelete(true);
     }, []);
 
     const confirmDelete = async () => {
-        if (!selectDepartment) return
+        if (!selectService) return
         try {
             setLoading(true);
 
             const response = await fetch(
-                import.meta.env.VITE_APP_API_BASE_URL + "/departments/" + selectDepartment.id,
+                import.meta.env.VITE_APP_API_BASE_URL + "/services/" + selectService.id,
                 {
                     method: "DELETE",
                     headers: {
@@ -71,35 +71,32 @@ export default function DepartmentsList() {
                 }
             );
 
-            if (!response.ok) throw new Error("Failed to delete department");
+            if (!response.ok) throw new Error("Failed to update service");
             await response.json();
 
-            setDepartments((prev) =>
-                prev.filter((d) => d.id !== selectDepartment.id)
+            setServices((prev) =>
+                prev.filter((d) => d.id !== selectService.id)
             )
 
             setOpenDelete(false)
-            setSelectDepartment(null)
+            setSelectService(null)
         } catch (err) {
-            alert("Département lie à des services");
-            setOpenDelete(false)
-            setSelectDepartment(null)
+            console.error(err)
         } finally {
             setLoading(false)
         }
     }
 
-
-    const handleSubmit = async (data: Department) => {
-       if (!token) return;
+    const handleSubmit = async (data: Service) => {
+        if (!token) return;
         try {
             setLoading(true);
             const isEditing = !!data.id;
-            const url = `${import.meta.env.VITE_APP_API_BASE_URL}/departments`;
+            const url = `${import.meta.env.VITE_APP_API_BASE_URL}/services`;
             const method = isEditing ? "PUT" : "POST";
-            const body = isEditing 
-                ? { department: { id: data.id, info: { name: data.name } } }
-                : { department: { name: data.name } };
+            const body = isEditing
+                ? { service: { id: data.id, info: { name: data.name, departmentId: data.department.id } } }
+                : { service: { name: data.name, departmentId: data.department.id } };
 
             const response = await fetch(url, {
                 method,
@@ -110,14 +107,14 @@ export default function DepartmentsList() {
                 body: JSON.stringify(body)
             });
 
-            if (!response.ok) throw new Error(`Failed to ${isEditing ? 'update' : 'add'} department`);
+            if (!response.ok) throw new Error(`Failed to ${isEditing ? 'update' : 'add'} service`);
             const savedData = await response.json();
             if (isEditing) {
-                setDepartments((prev) => prev.map((d) => (d.id === savedData.id ? savedData : d)));
+                setServices((prev) => prev.map((s) => (s.id === savedData.id ? savedData : s)));
             } else {
-                setDepartments((prev) => [...prev, savedData]);
+                setServices((prev) => [...prev, savedData]);
             }
-            setSelectDepartment(null);
+            setSelectService(null);
             setOpenForm(false);
         } catch (error) {
             console.error("Submission error:", error);
@@ -126,12 +123,21 @@ export default function DepartmentsList() {
             setLoading(false);
         }
     }
-
-    const columns: ColumnDef<Department>[] =  useMemo(() => [
+    const columns: ColumnDef<Service>[] = useMemo(() => [
         {
             accessorKey: "name",
             header: "Libellé",
             enableColumnFilter: true
+        },
+        {
+            accessorKey: "department.name",
+            header: "Départment",
+            enableColumnFilter: true,
+            filterFn: "arrIncludesSome", 
+            meta: {
+                filterVariant: "multi-select", 
+            }
+    
         },
         {
             id: "actions",
@@ -144,20 +150,20 @@ export default function DepartmentsList() {
                             {/* <Button variant="ghost" size="sm" onClick={() => console.log("View", row.original.id)}>
                                 View
                             </Button> */}
-                            <Button 
-                                title='Modifier département'
+                            <Button
+                                title='Modifier service'
                                 onClick={() => handleEdit(row.original)}
                                 className="rounded bg-blue-500 px-3 py-1 text-white"
                             >
                                 <Edit className="h-4 w-4" />
                             </Button>
 
-                            <Button 
-                                title='Supprimer départment'
+                            <Button
+                                title='Supprimer service'
                                 onClick={() => handleDelete(row.original)}
                                 className="rounded bg-red-500 px-3 py-1 text-white"
                             >
-                                 <Trash className="h-4 w-4" />
+                                <Trash className="h-4 w-4" />
                             </Button>
                         </div>
                     </>
@@ -169,31 +175,31 @@ export default function DepartmentsList() {
     return (
         <div className="space-y-6 flex flex-col h-full">
             <div className='mb-4 flex justify-between'>
-                <h2 className="text-2xl font-bold tracking-tight">Départments</h2>
+                <h2 className="text-2xl font-bold tracking-tight">Services</h2>
 
                 <Button
                     onClick={handleAdd}
                     className="rounded bg-blue-600 px-4 py-2 text-white"
                 >
-                    <PlusCircle className="h-4 w-4" /> Nouvelle département
+                    <PlusCircle className="h-4 w-4" /> Nouveau service
                 </Button>
             </div>
 
             <div className="flex-1 bg-card rounded-lg border p-4">
 
-                {loading ? <p>Chargement ....</p> : <DataTable columns={columns} data={depatments} />}
-                    <DepartmentFormModal
-                        open={openForm}
-                        onClose={() => setOpenForm(false)}
-                        department={selectDepartment}
-                        onSubmit={handleSubmit}
-                    />
-                    <DeleteModal
-                        description='Voulez-vous supprimer cette département ?'
-                        open={openDelete}
-                        onClose={() => setOpenDelete(false)}
-                        onConfirm={confirmDelete}
-                    />
+                {loading ? <p>Chargement ....</p> : <DataTable columns={columns} data={services} />}
+                <ServiceFormModal
+                    open={openForm}
+                    onClose={() => setOpenForm(false)}
+                    service={selectService}
+                    onSubmit={handleSubmit}
+                />
+                <DeleteModal
+                    description='Voulez-vous supprimer ce service ?'
+                    open={opneDelete}
+                    onClose={() => setOpenDelete(false)}
+                    onConfirm={confirmDelete}
+                />
             </div>
         </div>
     )

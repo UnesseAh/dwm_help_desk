@@ -28,14 +28,14 @@ export default function DeleteModal({
                         onClick={onClose}
                         className="rounded-md border px-4 py-2 text-sm hover:bg-gray-100"
                     >
-                        Cancel
+                        Annuler
                     </button>
 
                     <button
                         onClick={onConfirm}
                         className="rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
                     >
-                        Delete
+                        Supprimer
                     </button>
                 </div>
             </div>
